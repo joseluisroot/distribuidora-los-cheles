@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Componentes simples */
+.btn { @apply inline-flex items-center px-4 py-2 rounded-md border text-sm font-medium; }
+.btn-primary { @apply btn bg-blue-600 text-white hover:bg-blue-700 border-transparent; }
+.input { @apply w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500; }
+.card { @apply bg-white shadow rounded-2xl p-6; }
