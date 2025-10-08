@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\InventarioModel;
+use App\Models\PrecioEscaladoModel;
 use App\Models\ProductoModel;
 use App\Services\PedidoService;
 
@@ -33,34 +34,54 @@ class CarretillaController extends BaseController
     /** Ver carretilla */
     public function index()
     {
-        $cart = session('cart') ?? []; // [producto_id => cantidad]
-        $lineas = [];
-        $total = 0;
+        $cart = session('cart') ?? ['items' => []];
+        $ids  = array_keys($cart['items']);
 
-        foreach ($cart as $pid => $cant) {
-            $p = $this->productos->findActivo((int)$pid);
-            if (!$p) continue;
+        $items = [];
+        $total = 0.0;
 
-            $precioUnit = (float)precio_por_cantidad((int)$pid, (int)$cant);
-            $subtotal   = round($precioUnit * (int)$cant, 2, PHP_ROUND_HALF_UP);
-            $stock      = $this->inventario->getStockDeProducto((int)$pid);
+        if ($ids) {
+            $prodModel = new \App\Models\ProductoModel();
 
-            $lineas[] = [
-                'id'        => (int)$pid,
-                'sku'       => $p['sku'],
-                'nombre'    => $p['nombre'],
-                'precio'    => $precioUnit,
-                'cantidad'  => (int)$cant,
-                'subtotal'  => $subtotal,
-                'stock'     => $stock,
-            ];
-            $total += $subtotal;
+            $prods = $prodModel
+                ->select('productos.*, inventarios.stock')
+                ->join('inventarios','inventarios.producto_id=productos.id','left')
+                ->whereIn('productos.id', $ids)
+                ->findAll();
+
+            // Trae escalas de TODOS los productos del carrito en una sola consulta
+            $escModel = new PrecioEscaladoModel();
+            $escalasMap = $escModel->escalasPorProducto($ids);
+
+            foreach ($prods as $p) {
+                $pid    = (int)$p['id'];
+                $qty    = (int)($cart['items'][$pid] ?? 0);
+                if ($qty < 1) continue;
+
+                $base   = (float)$p['precio_base'];
+                $escs   = $escalasMap[$pid] ?? null;
+                $precio = PrecioEscaladoModel::precioAplicable($escs, $qty, $base);
+                $sub    = $precio * $qty;
+                $total += $sub;
+
+                $items[] = [
+                    'id'        => $pid,
+                    'nombre'    => $p['nombre'],
+                    'sku'       => $p['sku'],
+                    'precio'    => $precio,      // unitario aplicado
+                    'precioBase'=> $base,
+                    'qty'       => $qty,
+                    'stock'     => (int)($p['stock'] ?? 0),
+                    'sub'       => $sub,
+                    'ahorroPct' => $precio < $base ? round(100 - ($precio/$base*100), 2, PHP_ROUND_HALF_UP) : 0,
+                ];
+            }
         }
 
         return view('carretilla/index', [
-            'items' => $lineas,
-            'total' => round($total,2, PHP_ROUND_HALF_UP),
-            'title' => 'Mi Carretilla'
+            'items' => $items,
+            'total' => $total,
+            'title' => 'Mi Carretilla',
         ]);
     }
 

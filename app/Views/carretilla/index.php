@@ -1,54 +1,47 @@
 <?= $this->extend('layouts/app') ?>
 <?= $this->section('content') ?>
-
 <h1 class="text-2xl font-bold mb-4">Mi Carretilla</h1>
 
-<?php if(!$items): ?>
-    <div class="card">Tu carretilla está vacía. <a class="text-primary hover:underline" href="<?= site_url('catalogo') ?>">Ir al catálogo</a></div>
+<?php if (empty($items)): ?>
+    <div class="card">Tu carretilla está vacía.</div>
 <?php else: ?>
-    <div class="card overflow-x-auto mb-4">
-        <table class="min-w-full text-sm">
-            <thead class="bg-slate-50 text-slate-600">
-            <tr>
-                <th class="p-3 text-left">Producto</th>
-                <th class="p-3 text-right">Precio</th>
-                <th class="p-3 text-right">Cantidad</th>
-                <th class="p-3 text-right">Subtotal</th>
-                <th class="p-3 text-right">Acciones</th>
-            </tr>
-            </thead>
-            <tbody class="divide-y">
-            <?php foreach($items as $it): ?>
-                <tr class="hover:bg-slate-50">
-                    <td class="p-3">
-                        <div class="font-semibold"><?= esc($it['nombre']) ?></div>
-                        <div class="text-xs text-slate-500"><?= esc($it['sku']) ?> · Stock: <?= $it['stock'] ?></div>
-                    </td>
-                    <td class="p-3 text-right">$<?= number_format($it['precio'],2) ?></td>
-                    <td class="p-3 text-right">
-                        <form method="post" action="<?= site_url('carretilla/update') ?>" class="inline-flex gap-2 items-center">
-                            <?= csrf_field() ?>
-                            <input type="hidden" name="producto_id" value="<?= $it['id'] ?>">
-                            <input type="number" name="cantidad" value="<?= $it['cantidad'] ?>" min="1" class="input w-24">
-                            <button class="btn btn-outline">Actualizar</button>
-                        </form>
-                    </td>
-                    <td class="p-3 text-right">$<?= number_format($it['subtotal'],2) ?></td>
-                    <td class="p-3 text-right">
-                        <a class="btn btn-outline text-red-600" href="<?= site_url('carretilla/remove/'.$it['id']) ?>">Quitar</a>
-                    </td>
+    <div class="card">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead>
+                <tr class="text-left text-slate-500">
+                    <th class="py-2">Producto</th>
+                    <th class="py-2">SKU</th>
+                    <th class="py-2">Precio (aplicado)</th>
+                    <th class="py-2">Cant</th>
+                    <th class="py-2">Subtotal</th>
                 </tr>
-            <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="flex items-center justify-between">
-        <a class="btn btn-outline" href="<?= site_url('carretilla/clear') ?>">Vaciar</a>
-        <div class="text-right">
-            <div class="text-sm text-slate-500">Total</div>
-            <div class="text-2xl font-extrabold">$<?= number_format($total,2) ?></div>
-            <a class="btn btn-primary mt-2" href="<?= site_url('carretilla/checkout') ?>">Continuar</a>
+                </thead>
+                <tbody>
+                <?php foreach ($items as $it): ?>
+                    <tr class="border-t">
+                        <td class="py-2">
+                            <div class="font-semibold"><?= esc($it['nombre']) ?></div>
+                            <?php if ($it['ahorroPct'] > 0): ?>
+                                <div class="text-xs text-green-700">Ahorro escala: <?= $it['ahorroPct'] ?>%</div>
+                            <?php endif; ?>
+                        </td>
+                        <td class="py-2 text-slate-500"><?= esc($it['sku']) ?></td>
+                        <td class="py-2">
+                            $<?= number_format($it['precio'],2) ?>
+                            <?php if ($it['ahorroPct'] > 0): ?>
+                                <span class="text-xs line-through ml-1 text-slate-400">$<?= number_format($it['precioBase'],2) ?></span>
+                            <?php endif; ?>
+                        </td>
+                        <td class="py-2"><?= (int)$it['qty'] ?></td>
+                        <td class="py-2 font-semibold">$<?= number_format($it['sub'],2) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4 text-right">
+            <span class="text-lg font-bold">Total: $<?= number_format($total,2) ?></span>
         </div>
     </div>
 <?php endif; ?>

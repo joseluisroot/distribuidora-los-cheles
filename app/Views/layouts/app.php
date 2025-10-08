@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title><?= esc($title ?? 'Mi Tienda') ?></title>
+    <title><?= esc($title ?? 'Distribuidora Los Cheles') ?></title>
 
     <!-- Tailwind CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -35,6 +35,11 @@
         .input{width:100%;padding:.5rem .75rem;border:1px solid #cbd5e1;border-radius:.5rem}
         .input:focus{outline:none;box-shadow:0 0 0 3px rgba(29,78,216,.2)}
     </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+          integrity="sha512-K2U8pStA/64iFJpSRR8C+6+fUvBZr4cpN3apT8LTIe0d1Z8CGdrQ4zQrYySk0qEo2Ue9tHfEUE+oT7kF2zX0bA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800">
 <?php
@@ -50,7 +55,7 @@ $showFooter = $showFooter ?? true;
         <?php $user = session('user'); ?>
         <nav class="bg-white rounded-xl shadow mb-6">
             <div class="px-4 py-3 flex items-center justify-between">
-                <a href="<?= site_url('/') ?>" class="font-extrabold text-lg text-primary">Mi Tienda</a>
+                <a href="<?= site_url('/') ?>" class="font-extrabold text-lg text-primary">Distribuidora Los Cheles</a>
                 <ul class="flex items-center gap-3">
                     <?php if($user): ?>
                         <?php if(($user['role'] ?? '') === 'admin'): ?>
@@ -102,5 +107,7 @@ $showFooter = $showFooter ?? true;
     function openModal(id){ document.getElementById(id)?.classList.remove('hidden'); }
     function closeModal(id){ document.getElementById(id)?.classList.add('hidden'); }
 </script>
+
+<?= $this->include('partials/whatsapp_fab') ?>
 </body>
 </html>

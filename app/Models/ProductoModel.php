@@ -9,7 +9,7 @@ class ProductoModel extends Model
     protected $table = 'productos';
     protected $primaryKey = 'id';
     protected $useSoftDeletes = true;
-    protected $allowedFields = ['sku','nombre','descripcion','precio_base','is_activo'];
+    protected $allowedFields = ['sku','nombre','descripcion','precio_base','is_activo','imagen_url'];
     protected $useTimestamps = true;
     protected $returnType = 'array';
 

@@ -3,100 +3,174 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\HTTP\ResponseInterface;
 use App\Models\PasswordResetTokenModel;
 use App\Models\UserModel;
+use CodeIgniter\HTTP\ResponseInterface;
 
 class Auth extends BaseController
 {
+    // GET /login
     public function login()
     {
-        return view('auth/login');
+        return view('auth/login', [
+            'title' => 'Ingresar',
+            'showNavbar' => false,
+            'showFooter' => false,
+        ]);
     }
 
+    // POST /login
     public function doLogin()
     {
-        $email    = $this->request->getPost('email');
-        $password = $this->request->getPost('password');
+        $validation = service('validation');
+        $throttler  = service('throttler');
 
-        $userModel = new UserModel();
-        $user = $userModel->select('users.*, roles.name as role')
-            ->join('roles','roles.id = users.role_id')
-            ->where('email',$email)->first();
+        $email = (string) $this->request->getPost('email');
+        $ip    = (string) $this->request->getIPAddress();
 
-        if (!$user || !password_verify($password, $user['password']) || !$user['is_active']) {
-            return redirect()->back()->withInput()->with('error','Credenciales inválidas.');
+        // 🔒 Clave segura para cache/throttle (sin caracteres reservados)
+        $rawKey = 'login|' . strtolower($email) . '|' . $ip; // puede tener :, etc.
+        $key    = 't_' . md5($rawKey); // o sha1/sha256 en hex
+
+        // 5 intentos por minuto
+        if ($throttler->check($key, 5, MINUTE) === false) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Demasiados intentos. Intenta en 1 minuto.');
         }
 
+        $rules = [
+            'email'    => 'required|valid_email',
+            'password' => 'required|min_length[6]',
+        ];
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('error', 'Revisa los datos e intenta de nuevo.');
+        }
+
+        $password  = (string) $this->request->getPost('password');
+        $userModel = new UserModel();
+
+        // Trae rol por join como ya lo hacías
+        $user = $userModel->select('users.*, roles.name as role')
+            ->join('roles','roles.id = users.role_id','left')
+            ->where('users.email',$email)
+            ->first();
+
+        if (! $user || ! isset($user['password']) || ! password_verify($password, $user['password']) || empty($user['is_active'])) {
+            // Respuesta uniforme
+            return redirect()->back()->withInput()->with('error', 'Credenciales inválidas.');
+        }
+
+        // set sesión con datos mínimos
         session()->set('user', [
-            'id'    => $user['id'],
+            'id'    => (int) $user['id'],
             'name'  => $user['name'],
             'email' => $user['email'],
-            'role'  => $user['role'], // admin | cliente
+            'role'  => $user['role'] ?: 'cliente',
         ]);
 
         return redirect()->to('/dashboard');
     }
 
+    // GET /logout
     public function logout()
     {
+        session()->remove('user');
         session()->destroy();
         return redirect()->to('/login')->with('message','Sesión cerrada.');
     }
 
+    // GET /forgot
     public function forgot()
     {
-        return view('auth/forgot');
+        return view('auth/forgot', [
+            'title' => 'Recuperar contraseña',
+            'showNavbar' => false,
+            'showFooter' => false,
+        ]);
     }
 
+    // POST /forgot
     public function sendReset()
     {
-        $email = $this->request->getPost('email');
+        $validation = service('validation');
+        $rules = ['email' => 'required|valid_email'];
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('error','Ingresa un correo válido.');
+        }
+
+        $email = (string) $this->request->getPost('email');
         $user  = (new UserModel())->findByEmail($email);
 
-        // Respondemos igual para no filtrar existencia
+        // Siempre responder genérico
         if (!$user) {
             return redirect()->back()->with('message','Si el correo existe, enviaremos instrucciones.');
         }
 
         $tokenModel = new PasswordResetTokenModel();
-        $token = $tokenModel->createToken($user['id']);
+        $token      = $tokenModel->createToken((int) $user['id']); // retorna token en texto plano
 
         $resetUrl = base_url('reset/'.$token);
 
-        $emailService = service('email');
-        $emailService->setTo($email);
-        $emailService->setSubject('Recupera tu contraseña');
-        $emailService->setMessage("Hola {$user['name']},\n\nUsa este enlace para restablecer tu contraseña:\n{$resetUrl}\n\nEl enlace expira en 1 hora.");
-        $emailService->send();
+        try {
+            $emailService = service('email');
+            $emailService->setTo($email);
+            $emailService->setSubject('Recupera tu contraseña - Distribuidora Los Cheles');
+            $emailService->setMessage(
+                view('emails/reset_link', [
+                    'name'    => $user['name'],
+                    'resetUrl'=> $resetUrl,
+                ])
+            );
+            $emailService->send();
+        } catch (\Throwable $e) {
+            // No reveles fallo; loguea para ti
+            log_message('error', 'Email reset error: {err}', ['err' => $e->getMessage()]);
+        }
 
         return redirect()->back()->with('message','Si el correo existe, enviaremos instrucciones.');
     }
 
-    public function reset($token)
+    // GET /reset/{token}
+    public function reset(string $token)
     {
-        return view('auth/reset', ['token'=>$token]);
+        return view('auth/reset', [
+            'title'      => 'Nueva contraseña',
+            'showNavbar' => false,
+            'showFooter' => false,
+            'token'      => $token,
+        ]);
     }
 
+    // POST /reset
     public function doReset()
     {
-        $token = $this->request->getPost('token');
-        $pass1 = $this->request->getPost('password');
-        $pass2 = $this->request->getPost('password_confirm');
-
-        if ($pass1 !== $pass2 || strlen($pass1) < 8) {
-            return redirect()->back()->with('error','Contraseña inválida o no coincide.')->withInput();
+        $validation = service('validation');
+        $rules = [
+            'token'             => 'required',
+            'password'          => 'required|min_length[8]',
+            'password_confirm'  => 'required|matches[password]',
+        ];
+        if (! $this->validate($rules)) {
+            return redirect()->back()->withInput()->with('error','Contraseña inválida o no coincide.');
         }
 
+        $token = (string) $this->request->getPost('token');
+        $pass1 = (string) $this->request->getPost('password');
+
         $tokenModel = new PasswordResetTokenModel();
-        $row = $tokenModel->validateToken($token);
-        if (!$row) {
+        $row        = $tokenModel->validateToken($token);
+        if (! $row) {
             return redirect()->to('/login')->with('error','Token inválido o vencido.');
         }
 
         $userModel = new UserModel();
-        $userModel->update($row['user_id'], ['password'=>password_hash($pass1, PASSWORD_DEFAULT)]);
-        $tokenModel->update($row['id'], ['used_at'=>date('Y-m-d H:i:s')]);
+        $userModel->update((int) $row['user_id'], [
+            'password'   => password_hash($pass1, PASSWORD_DEFAULT),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+
+        // marcar token usado
+        $tokenModel->markUsed((int) $row['id']);
 
         return redirect()->to('/login')->with('message','Contraseña actualizada. Inicia sesión.');
     }

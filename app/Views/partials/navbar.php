@@ -2,7 +2,7 @@
 <nav class="bg-white rounded-xl shadow mb-6">
     <div class="px-4 py-3 flex items-center justify-between">
         <!-- Logo o nombre -->
-        <a href="<?= site_url('/') ?>" class="font-extrabold text-lg text-primary">Mi Tienda</a>
+        <a href="<?= site_url('/') ?>" class="font-extrabold text-lg text-primary">Distribuidora Los Cheles</a>
 
         <!-- Menú -->
         <ul class="flex items-center gap-3">
