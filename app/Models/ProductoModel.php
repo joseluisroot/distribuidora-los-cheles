@@ -17,4 +17,20 @@ class ProductoModel extends Model
     {
         return $this->where('id',$id)->where('is_activo',1)->first();
     }
+
+    /** Ajusta el nombre de la columna de inventario si es diferente */
+    public function countLowStock(int $threshold = 10): int
+    {
+        // Cambia 'stock' por tu columna real (p. ej., 'existencias')
+        return (int) $this->where('stock <', $threshold)->countAllResults();
+    }
+
+    public function getLowStock(int $threshold = 10, int $limit = 10): array
+    {
+        return $this->select('id, sku, nombre AS name, stock')
+            ->where('stock <', $threshold)
+            ->orderBy('stock', 'ASC')
+            ->limit($limit)
+            ->find();
+    }
 }

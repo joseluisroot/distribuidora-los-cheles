@@ -18,13 +18,21 @@ $routes->get('reset/(:segment)', 'Auth::reset/$1');
 $routes->post('reset', 'Auth::doReset');
 $routes->get('register', 'Auth::register');
 
+
+// Panel del CLIENTE
 $routes->group('', ['filter' => 'auth'], static function ($routes) {
-    $routes->get('dashboard', 'Dashboard::index');
+    // Usa el controlador correcto de cliente
+    $routes->get('dashboard', 'Cliente\Dashboard::index', ['as' => 'client.dashboard']);
 
     // Ejemplos (futuros módulos):
     // $routes->group('admin', ['filter'=>'auth:admin'], function($routes){
     //   $routes->get('productos', 'Admin\Productos::index');
     // });
+});
+
+// Panel del ADMIN
+$routes->group('admin', ['filter' => 'adminauth'], static function ($routes) {
+    $routes->get('dashboard', 'Admin\DashboardController::index', ['as' => 'admin.index']);
 });
 
 // catálogo simple para probar (listar productos activos)
@@ -125,5 +133,6 @@ $routes->group('pedidos', ['filter' => 'auth'], function ($routes) {
 
     $routes->post('cambiar-estado/(:num)', 'PedidoController::cambiarEstado/$1');
 });
+
 
 

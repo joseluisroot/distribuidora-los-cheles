@@ -60,15 +60,44 @@ class Auth extends BaseController
             return redirect()->back()->withInput()->with('error', 'Credenciales inválidas.');
         }
 
-        // set sesión con datos mínimos
-        session()->set('user', [
-            'id'    => (int) $user['id'],
-            'name'  => $user['name'],
-            'email' => $user['email'],
-            'role'  => $user['role'] ?: 'cliente',
+        // ✅ Seguridad: regenerar ID de sesión
+        session()->regenerate();
+
+        // Normaliza el rol
+        $role = strtolower($user['role'] ?? 'cliente');
+        $roleMap = [
+            'administrador' => 'admin',
+            'gerente'       => 'manager',
+            'cliente'       => 'cliente',
+        ];
+        $role = $roleMap[$role] ?? $role;
+
+        // Guardamos datos de sesión
+        session()->set([
+            'isLoggedIn' => true,
+            'role'       => $role,
+            'user_id'    => (int) $user['id'],
+            'user'       => [
+                'id'    => (int) $user['id'],
+                'name'  => $user['name'],
+                'email' => $user['email'],
+                'role'  => $role,
+            ],
         ]);
 
-        return redirect()->to('/dashboard');
+        // 🔁 Redirección por rol
+        switch ($role) {
+            case 'admin':
+            case 'manager':
+                $redirectUrl = site_url('admin/dashboard');
+                break;
+            case 'cliente':
+            default:
+                $redirectUrl = site_url('dashboard');
+                break;
+        }
+
+        return redirect()->to($redirectUrl);
     }
 
     // GET /logout
