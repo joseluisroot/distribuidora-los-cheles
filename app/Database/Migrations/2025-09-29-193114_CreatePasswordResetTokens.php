@@ -15,7 +15,6 @@ class CreatePasswordResetTokens extends Migration
             'token_hash' => ['type' => 'VARCHAR', 'constraint' => 255],
             'expires_at' => ['type' => 'DATETIME', 'null' => false],
             'used_at' => ['type' => 'DATETIME', 'null' => true],
-            'ip' => ['type' => 'VARCHAR', 'constraint' => 45, 'null' => true],
             'user_agent' => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
             'created_at' => ['type' => 'DATETIME', 'null' => false, 'default' => new RawSql('CURRENT_TIMESTAMP')]
         ]);
