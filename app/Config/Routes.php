@@ -35,10 +35,21 @@ $routes->group('admin', ['filter' => 'adminauth'], static function ($routes) {
     $routes->get('dashboard', 'Admin\DashboardController::index', ['as' => 'admin.index']);
 });
 
+/*
 // catálogo simple para probar (listar productos activos)
 $routes->get('catalogo', 'CatalogoController::index');
 // Catálogo (visible para usuarios logueados o público, tú decides)
-$routes->get('catalogo', 'CarretillaController::catalogo');
+$routes->get('catalogo', 'CarretillaController::catalogo');*/
+
+// catálogo
+$routes->get('catalogo', 'CatalogoController::index');
+
+// PDP por slug
+$routes->get('catalogo/(:segment)', 'CatalogoController::show/$1');
+
+// Endpoint JSON (puede aceptar slug o id). Recomiendo slug también:
+$routes->get('catalogo/json/(:segment)', 'CatalogoController::json/$1');
+
 // PDP (detalle de producto)
 $routes->get('catalogo/(:num)', 'CatalogoController::show/$1');
 // Endpoint JSON para Vista Rápida (modal)
@@ -133,6 +144,16 @@ $routes->group('pedidos', ['filter' => 'auth'], function ($routes) {
 
     $routes->post('cambiar-estado/(:num)', 'PedidoController::cambiarEstado/$1');
 });
+
+// app/Config/Routes.php
+$routes->group('productos', ['filter' => 'auth:admin'], function ($routes) {
+    // ...lo que ya tienes...
+    $routes->get('importar', 'ProductoImportController::form');
+    $routes->get('importar/plantilla', 'ProductoImportController::template');
+    $routes->post('importar/previsualizar', 'ProductoImportController::preview');
+    $routes->post('importar/procesar', 'ProductoImportController::process');
+});
+
 
 
 

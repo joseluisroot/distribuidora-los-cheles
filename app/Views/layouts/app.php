@@ -34,11 +34,24 @@
         .alert-error{background:#fee2e2;color:#991b1b}
         .input{width:100%;padding:.5rem .75rem;border:1px solid #cbd5e1;border-radius:.5rem}
         .input:focus{outline:none;box-shadow:0 0 0 3px rgba(29,78,216,.2)}
+
+        .btn[disabled], .btn.is-disabled {
+            opacity: .5;
+            pointer-events: none;
+            cursor: not-allowed;
+            filter: grayscale(30%);
+        }
+
     </style>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-          integrity="sha512-K2U8pStA/64iFJpSRR8C+6+fUvBZr4cpN3apT8LTIe0d1Z8CGdrQ4zQrYySk0qEo2Ue9tHfEUE+oT7kF2zX0bA=="
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+            integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
+    />
+
 
 </head>
 <body class="bg-gray-100 min-h-screen text-gray-800">

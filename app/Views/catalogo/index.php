@@ -183,8 +183,8 @@
                 <form method="post" action="<?= site_url('carretilla/agregar') ?>" class="mt-4 flex flex-wrap items-center gap-2">
                     <?= csrf_field() ?>
                     <input type="hidden" name="producto_id" id="qv-producto-id" value="">
-                    <input type="number" min="1" step="1" value="1" name="cant" class="input w-24" aria-label="Cantidad">
-                    <button class="btn btn-primary">Agregar a carretilla</button>
+                    <input type="number" min="1" step="1" value="1" name="cant" id="qv-cant" class="input w-24" aria-label="Cantidad" >
+                    <button class="btn btn-primary" id="qv-add-btn">Agregar a carretilla</button>
                     <a id="qv-ver" href="#" class="btn btn-outline">Ver detalle</a>
                 </form>
 
@@ -215,6 +215,29 @@
             document.getElementById('qv-p10').textContent = '$' + Number(p.precio_q10).toFixed(2);
             document.getElementById('qv-ver').href = p.url || '#';
             document.getElementById('qv-stock').textContent = (p.stock > 0) ? ('Stock: ' + p.stock) : 'Agotado';
+
+
+            const addBtn = document.getElementById('qv-add-btn');
+            const stockTxt = document.getElementById('qv-stock');
+            const cantInput = document.getElementById('qv-cant');
+
+            const agotado = !(p.stock > 0);
+            stockTxt.textContent = agotado ? 'Agotado' : ('Stock: ' + p.stock);
+
+            // Toggle accesible
+            addBtn.disabled = agotado;
+            addBtn.classList.toggle('is-disabled', agotado); // aplica estilo si agregaste el CSS
+            addBtn.classList.toggle('btn-primary', !agotado);
+            addBtn.classList.toggle('btn-outline', agotado); // opcional: cambia a “outline” cuando no hay stock
+            addBtn.title = agotado ? 'Sin existencias' : 'Agregar a carretilla';
+
+            // Toggle para input cantidad
+            cantInput.disabled = agotado;
+            cantInput.classList.toggle('opacity-60', agotado);
+            cantInput.classList.toggle('cursor-not-allowed', agotado);
+            cantInput.max = p.stock > 0 ? p.stock : 1;
+            cantInput.title = agotado ? 'Sin existencias' : 'Cantidad a agregar';
+
 
             const thumbs = document.getElementById('qv-thumbs');
             thumbs.innerHTML = '';

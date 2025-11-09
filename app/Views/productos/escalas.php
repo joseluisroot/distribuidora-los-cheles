@@ -1,6 +1,5 @@
 <?= $this->extend('layouts/app') ?>
 <?= $this->section('content') ?>
-<?= view('partials/navbar') ?>
 
 <h1 class="text-2xl font-bold mb-4">Escalas - <?= esc($producto['nombre']) ?></h1>
 

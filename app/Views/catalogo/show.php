@@ -36,21 +36,17 @@ if (!empty($imagenes)) {
         $primary = $imgs[0]['path'] ?? ($producto['imagen_url'] ?? base_url('assets/placeholder-product.png'));
         ?>
         <div class="relative overflow-hidden rounded-lg">
-            <img id="gal-main" src="<?= $primary ?>" alt="<?= esc($producto['nombre']) ?>"
+            <img id="gal-main" src="<?= base_url($primary) ?>" alt="<?= esc($producto['nombre']) ?>"
                  class="w-full h-72 object-cover transition-transform duration-200 hover:scale-[1.05]">
-            <!--<img id="gal-main" src="<?php /*= base_url($primary) */?>" alt="<?php /*= esc($producto['nombre']) */?>"
-                 class="w-full h-72 object-cover transition-transform duration-200 hover:scale-[1.05]">-->
         </div>
 
         <?php if (!empty($imgs)): ?>
             <div class="mt-3 grid grid-cols-5 gap-2">
                 <?php foreach ($imgs as $gi): ?>
                     <button type="button" class="border rounded-lg overflow-hidden hover:ring-2 hover:ring-primary"
-                            onclick="document.getElementById('gal-main').src='<?= $gi['path'] //base_url($gi['path']) ?>'">
-                        <img src="<?= $gi['thumb_path'] ?: $gi['path'] ?>" alt="<?= esc($gi['alt'] ?? $producto['nombre']) ?>"
+                            onclick="document.getElementById('gal-main').src='<?= base_url($gi['path']) ?>'">
+                        <img src="<?= base_url($gi['thumb_path']) ?: $gi['path'] ?>" alt="<?= esc($gi['alt'] ?? $producto['nombre']) ?>"
                              class="w-full h-16 object-cover">
-                        <!--<img src="<?php /*= base_url($gi['thumb_path'] ?: $gi['path']) */?>" alt="<?php /*= esc($gi['alt'] ?? $producto['nombre']) */?>"
-                             class="w-full h-16 object-cover">-->
                     </button>
                 <?php endforeach; ?>
             </div>
@@ -90,15 +86,40 @@ if (!empty($imagenes)) {
             </div>
         <?php endif; ?>
 
-        <form method="post" action="<?= site_url('carretilla/agregar') ?>" class="mt-4 flex items-center gap-2">
+        <?php
+        $stock   = (int)($producto['stock'] ?? 0);
+        $agotado = $stock <= 0;
+        ?>
+
+
+        <form method="post" action="<?= site_url('carretilla/agregar') ?>"
+              class="mt-4 flex items-center gap-2"
+              onsubmit="const b=document.getElementById('show-add-btn'); if (b && b.disabled) return false;">
             <?= csrf_field() ?>
             <input type="hidden" name="producto_id" value="<?= (int)$producto['id'] ?>">
-            <input type="number" min="1" step="1" value="1" name="cant" class="input w-28" aria-label="Cantidad">
-            <button class="btn btn-primary">Agregar a carretilla</button>
-            <span class="text-sm ml-2 <?= ((int)($producto['stock'] ?? 0) <= 0) ? 'text-red-600' : 'text-slate-500' ?>">
-        <?= ((int)($producto['stock'] ?? 0) <= 0) ? 'Agotado' : 'Stock: '.(int)$producto['stock'] ?>
-      </span>
+
+            <input id="show-cant"
+                   type="number" min="1" step="1"
+                   value="<?= $agotado ? 1 : 1 ?>"
+                   max="<?= $agotado ? 1 : $stock ?>"
+                   name="cant"
+                    <?= $agotado ? 'disabled' : '' ?>
+                   class="input w-28 <?= $agotado ? 'opacity-60 cursor-not-allowed' : '' ?>"
+                   aria-label="Cantidad"
+                   title="<?= $agotado ? 'Sin existencias' : 'Cantidad a agregar' ?>">
+
+            <button id="show-add-btn"
+                    class="btn <?= $agotado ? 'btn-outline is-disabled' : 'btn-primary' ?>"
+                    title="<?= $agotado ? 'Sin existencias' : 'Agregar a carretilla' ?>"
+                    <?= $agotado ? 'disabled' : '' ?>>
+                Agregar a carretilla
+            </button>
+
+            <span class="text-sm ml-2 <?= $agotado ? 'text-red-600' : 'text-slate-500' ?>">
+    <?= $agotado ? 'Agotado' : 'Stock: '.$stock ?>
+  </span>
         </form>
+
     </div>
 </div>
 
@@ -166,6 +187,18 @@ if (!empty($imagenes)) {
             const main = document.getElementById('gal-main');
             if (main) { main.src = url; }
         };
+
+        const input = document.getElementById('show-cant');
+        if (!input) return;
+        input.addEventListener('input', () => {
+            const min = parseInt(input.min || '1', 10);
+            const max = parseInt(input.max || '1', 10);
+            let val   = parseInt(input.value || String(min), 10);
+            if (Number.isNaN(val)) val = min;
+            if (val < min) val = min;
+            if (val > max) val = max;
+            input.value = val;
+        }, {passive:true});
     })();
 </script>
 

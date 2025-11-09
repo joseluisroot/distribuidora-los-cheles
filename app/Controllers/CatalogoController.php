@@ -78,7 +78,7 @@ class CatalogoController extends BaseController
         ]);
     }
 
-    public function show(int $id)
+    public function show(string $slug)
     {
         $model = new \App\Models\ProductoModel();
 
@@ -86,33 +86,49 @@ class CatalogoController extends BaseController
             ->select('productos.*, inventarios.stock')
             ->join('inventarios','inventarios.producto_id = productos.id','left')
             ->where('productos.is_activo', 1)
-            ->find($id);
+            ->where('productos.slug', $slug)
+            ->first();
 
         if (!$producto) {
             return redirect()->to('catalogo')->with('error','Producto no encontrado.');
         }
 
-        // Escalas completas para mostrar tabla
         $escalas = (new \App\Models\PrecioEscaladoModel())
-            ->where('producto_id', $id)
+            ->where('producto_id', (int)$producto['id'])
             ->orderBy('min_cantidad','ASC')
             ->findAll();
+
+
+        $imgModel  = new \App\Models\ProductImageModel();
+        $imagenes  = $imgModel->byProducto((int)$producto['id']);   // lista completa ordenada
+        $principal = $imagenes[0] ?? null;
 
         return view('catalogo/show', [
             'title'    => $producto['nombre'].' - Catálogo',
             'producto' => $producto,
             'escalas'  => $escalas,
+            'imagenes'  => $imagenes,
+            'principal' => $principal,
         ]);
     }
 
-    public function json(int $id)
+    public function json($key)
     {
         $model = new \App\Models\ProductoModel();
-        $p = $model
-            ->select('productos.*, inventarios.stock')
-            ->join('inventarios','inventarios.producto_id = productos.id','left')
-            ->where('productos.is_activo', 1)
-            ->find($id);
+        if (ctype_digit($key)) {
+            $p = $model
+                ->select('productos.*, inventarios.stock')
+                ->join('inventarios','inventarios.producto_id = productos.id','left')
+                ->where('productos.is_activo', 1)
+                ->find((int)$key);
+        } else {
+            $p = $model
+                ->select('productos.*, inventarios.stock')
+                ->join('inventarios','inventarios.producto_id = productos.id','left')
+                ->where('productos.is_activo', 1)
+                ->where('productos.slug', $key)
+                ->first();
+        }
 
         if (!$p) {
             return $this->response->setStatusCode(404)->setJSON(['error'=>'No encontrado']);
@@ -125,19 +141,19 @@ class CatalogoController extends BaseController
         $precio1 = $db->query("
         SELECT COALESCE((SELECT precio FROM {$prefix}precios_escalados 
           WHERE producto_id = ? AND min_cantidad <= 1 ORDER BY min_cantidad DESC LIMIT 1), ?) AS precio
-    ", [$id, (float)$p['precio_base']])->getRow('precio');
+    ", [$p['id'], (float)$p['precio_base']])->getRow('precio');
 
         $precio3 = $db->query("
         SELECT COALESCE((SELECT precio FROM {$prefix}precios_escalados 
           WHERE producto_id = ? AND min_cantidad <= 3 ORDER BY min_cantidad DESC LIMIT 1), ?) AS precio
-    ", [$id, (float)$p['precio_base']])->getRow('precio');
+    ", [$p['id'], (float)$p['precio_base']])->getRow('precio');
 
         $precio10 = $db->query("
         SELECT COALESCE((SELECT precio FROM {$prefix}precios_escalados 
           WHERE producto_id = ? AND min_cantidad <= 10 ORDER BY min_cantidad DESC LIMIT 1), ?) AS precio
-    ", [$id, (float)$p['precio_base']])->getRow('precio');
+    ", [$p['id'], (float)$p['precio_base']])->getRow('precio');
 
-        $imgs = (new \App\Models\ProductImageModel())->byProducto($id);
+        $imgs = (new \App\Models\ProductImageModel())->byProducto($p['id']);
         $images = [];
         foreach ($imgs as $im) {
             $images[] = [
@@ -159,7 +175,7 @@ class CatalogoController extends BaseController
             'precio_q1'   => (float)$precio1,
             'precio_q3'   => (float)$precio3,
             'precio_q10'  => (float)$precio10,
-            'url'         => site_url('catalogo/'.$p['id']),
+            'url'         => site_url('catalogo/'.$p['slug']),
             'images' => $images,
         ]);
     }
