@@ -154,6 +154,8 @@ $routes->group('productos', ['filter' => 'auth:admin'], function ($routes) {
     $routes->post('importar/procesar', 'ProductoImportController::process');
 });
 
+$routes->get('migracion', 'Migrations::index');
+
 
 
 
