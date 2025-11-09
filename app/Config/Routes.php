@@ -155,6 +155,8 @@ $routes->group('productos', ['filter' => 'auth:admin'], function ($routes) {
 });
 
 $routes->get('migracion', 'Migrations::index');
+$routes->get('seed/run', 'Seed::run');
+
 
 
 
