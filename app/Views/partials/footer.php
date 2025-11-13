@@ -4,6 +4,6 @@
         <a href="<?= site_url('/') ?>" class="hover:text-primary">Inicio</a>
         <a href="<?= site_url('catalogo') ?>" class="hover:text-primary">Catálogo</a>
         <a href="<?= site_url('contacto') ?>" class="hover:text-primary">Contacto</a>
-        <a href="<?= site_url('politicas') ?>" class="hover:text-primary">Políticas</a>
+        <a href="<?= site_url('politicas-terminos-y-condiciones') ?>" class="hover:text-primary">Políticas</a>
     </div>
 </footer>

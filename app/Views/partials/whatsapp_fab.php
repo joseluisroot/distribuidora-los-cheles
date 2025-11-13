@@ -1,6 +1,6 @@
 <?php
 // Número de WhatsApp en formato internacional (sin +)
-$waPhone = env('app.whatsapp_phone', '50379075851'); // Ejemplo: 5037XXXXXXXX
+$waPhone = env('app.whatsapp_phone', '50376769991');
 
 // Mensaje predefinido
 $mensaje = rawurlencode('¡Hola! Vengo desde el sitio web de Distribuidora Los Cheles. Me gustaría más información.');

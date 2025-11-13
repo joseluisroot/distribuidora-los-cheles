@@ -104,7 +104,7 @@ $routes->group('demo', function ($r) {
 // Carretilla y Checkout (requieren login)
 $routes->group('', ['filter' => 'auth'], static function ($routes) {
     $routes->get('carretilla', 'CarretillaController::index');
-    $routes->post('carretilla/add', 'CarretillaController::add');
+    $routes->post('carretilla/agregar', 'CarretillaController::add');
     $routes->post('carretilla/update', 'CarretillaController::update');
     $routes->get('carretilla/remove/(:num)', 'CarretillaController::remove/$1');
     $routes->get('carretilla/clear', 'CarretillaController::clear');
@@ -156,6 +156,8 @@ $routes->group('productos', ['filter' => 'auth:admin'], function ($routes) {
 
 $routes->get('migracion', 'Migrations::index');
 $routes->get('seed/run', 'Seed::run');
+
+$routes->get('politicas-terminos-y-condiciones', 'PaginasController::terminos');
 
 
 
