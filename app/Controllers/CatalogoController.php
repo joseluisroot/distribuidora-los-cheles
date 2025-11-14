@@ -86,8 +86,13 @@ class CatalogoController extends BaseController
             ->select('productos.*, inventarios.stock')
             ->join('inventarios','inventarios.producto_id = productos.id','left')
             ->where('productos.is_activo', 1)
-            ->where('productos.slug', $slug)
+            ->groupStart()
+                ->where('productos.slug', $slug)
+                ->orWhere('productos.sku', $slug)
+            ->groupEnd()
             ->first();
+
+        //dd((string) $model->getLastQuery() );
 
         if (!$producto) {
             return redirect()->to('catalogo')->with('error','Producto no encontrado.');
