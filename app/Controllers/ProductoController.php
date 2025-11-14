@@ -30,7 +30,7 @@ class ProductoController extends BaseController
         $productos = $this->productoModel
             ->select('productos.*, inventarios.stock')
             ->join('inventarios', 'inventarios.producto_id=productos.id', 'left')
-            ->orderBy('productos.created_at', 'DESC')
+            ->orderBy('productos.sku', 'ASC')
             ->findAll();
 
         return view('productos/index', [
