@@ -19,7 +19,8 @@ class CatalogoController extends BaseController
         $model   = new ProductoModel();
         $builder = $model->select('productos.*, inventarios.stock')
             ->join('inventarios', 'inventarios.producto_id = productos.id', 'left')
-            ->where('is_activo', 1);
+            ->where('is_activo', 1)
+            ->orderBy('productos.sku', 'ASC');
 
         $prefix   = $model->db->getPrefix();
         $subThumb = "(SELECT COALESCE(pi.thumb_path, pi.path)
