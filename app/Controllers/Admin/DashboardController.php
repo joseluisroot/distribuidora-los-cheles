@@ -20,9 +20,9 @@ class DashboardController extends BaseController
 
         $kpi = [
             'ventasHoy'         => $pedidoModel->getTotalByDate($today),
-            'pedidosPendientes' => $pedidoModel->countPendingFromHeader(), // 0 si aún no hay cabecera
-            'stockBajo'         => 0,
-            'clientesActivos'   => 0,
+            'pedidosPendientes' => null, // Pending implementation; do not present a placeholder zero as real data.
+            'stockBajo'         => null,
+            'clientesActivos'   => null,
         ];
 
         // Cálculos que podrían fallar si no existen columnas/tablas:
@@ -32,7 +32,7 @@ class DashboardController extends BaseController
         $data = [
             'kpi'            => $kpi,
             'ultimosPedidos' => $pedidoModel->getRecentOrders(10),
-            'stockCritico'   => [],
+            'stockCritico'   => null,
             'ventas7d'       => $pedidoModel->getSalesLastDays(7),
         ];
 

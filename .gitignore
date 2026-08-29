@@ -92,7 +92,14 @@ phpunit
 #-------------------------
 # Composer
 #-------------------------
-vendor/
+/vendor/
+
+# JavaScript dependencies are reproduced from package-lock.json.
+node_modules/
+tmp/
+writable/backups/
+public/uploads/
+output/
 
 #-------------------------
 # IDE / Development Files

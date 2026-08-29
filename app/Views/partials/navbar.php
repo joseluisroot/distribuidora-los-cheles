@@ -10,7 +10,7 @@
                 <?php if($user['role']==='admin'): ?>
                     <li><a class="text-muted hover:text-primary" href="<?= site_url('productos') ?>">Productos</a></li>
                     <li><a class="text-muted hover:text-primary" href="<?= site_url('pedidos') ?>">Pedidos</a></li>
-                    <li><a class="text-muted hover:text-primary" href="<?= site_url('usuarios') ?>">Usuarios</a></li>
+                    <li><a class="text-muted hover:text-primary" href="<?= site_url('dashboard') ?>">Mi panel</a></li>
                 <?php else: ?>
                     <li><a class="text-muted hover:text-primary" href="<?= site_url('catalogo') ?>">Catálogo</a></li>
                     <li><a class="text-muted hover:text-primary" href="<?= site_url('carretilla') ?>">Mi Carretilla</a></li>
@@ -22,7 +22,7 @@
                     <span class="badge badge-gray"><?= esc($user['name'] ?? 'Usuario') ?></span>
                 </li>
                 <li>
-                    <a class="btn btn-outline" href="<?= site_url('logout') ?>">Salir</a>
+                    <form method="post" action="<?= site_url('logout') ?>"><?= csrf_field() ?><button type="submit" class="btn btn-outline" >Salir</button></form>
                 </li>
             <?php else: ?>
                 <!-- Si no hay login -->

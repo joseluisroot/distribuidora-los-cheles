@@ -34,7 +34,7 @@ class CarretillaController extends BaseController
     /** Ver carretilla */
     public function index()
     {
-        $cart = session('cart') ?? ['items' => []];
+        $cart = ['items' => session('cart') ?? []];
         $ids  = array_keys($cart['items']);
 
         $items = [];
@@ -186,39 +186,7 @@ class CarretillaController extends BaseController
     /** Confirmar pedido: crea pedido, agrega ítems, confirma (descuenta inventario) */
     public function placeOrder()
     {
-        $user = session('user');
-        if (!$user) return redirect()->to('/login')->with('error','Inicia sesión para continuar.');
-
-        $cart = session('cart') ?? [];
-        if (!$cart) return redirect()->to('/catalogo')->with('error','Tu carretilla está vacía.');
-
-        // Revalidar stock
-        foreach ($cart as $pid => $cant) {
-            $stock = $this->inventario->getStockDeProducto((int)$pid);
-            if ($cant > $stock) {
-                return redirect()->to('/carretilla/checkout')
-                    ->with('error',"Stock insuficiente para producto ID {$pid}.");
-            }
-        }
-
-        $svc = new PedidoService();
-
-        // Crear pedido
-        $pedido = $svc->crearPedido((int)$user['id'], $this->request->getPost('observaciones'));
-
-        // Agregar ítems con precios por escala (congelados)
-        foreach ($cart as $pid => $cant) {
-            $svc->agregarItem((int)$pedido['id'], (int)$pid, (int)$cant);
-        }
-
-        // Confirmar (cambia a 'preparando' y descuenta inventario)
-        $svc->confirmar((int)$pedido['id'], (int)$user['id']);
-
-        // Limpiar carretilla
-        session()->remove('cart');
-
-        return redirect()->to('/pedidos/'.$pedido['id'])
-            ->with('message','Pedido creado y confirmado. Estado: preparando.');
+        return $this->response->setStatusCode(409)->setBody('El envío de pedidos estará disponible con el flujo de reservas de I5.');
     }
 
 }

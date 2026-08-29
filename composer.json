@@ -10,8 +10,8 @@
         "slack": "https://codeigniterchat.slack.com"
     },
     "require": {
-        "php": "^7.4 || ^8.0",
-        "codeigniter4/framework": "^4.0",
+        "php": "^8.2",
+        "codeigniter4/framework": "^4.7.4",
         "phpoffice/phpspreadsheet": "^1.30"
     },
     "require-dev": {
@@ -30,6 +30,10 @@
         }
     },
     "config": {
+        "platform": {
+            "php": "8.2.0",
+            "php-64bit": "8.2.0"
+        },
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true

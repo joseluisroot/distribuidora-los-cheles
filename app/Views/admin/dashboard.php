@@ -4,29 +4,30 @@
 <div class="px-4 md:px-8 py-6">
 
     <!-- Título y acciones rápidas -->
-    <div class="flex items-center justify-between mb-6">
+    <div class="flex flex-wrap gap-4 items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold">Dashboard</h1>
-            <p class="text-sm text-slate-500">Resumen de pedidos, ventas y stock</p>
+            <h1 class="text-2xl font-bold">Panel administrativo</h1>
+            <p class="text-sm text-slate-500">Resumen de pedidos registrados e inventario actual</p>
         </div>
         <div class="flex gap-2">
-            <a href="<?= base_url('orders/create') ?>" class="btn btn-primary px-4 py-2 rounded-xl shadow">
-                + Nuevo Pedido
+            <a href="<?= site_url('pedidos') ?>" class="btn btn-primary px-4 py-2 rounded-xl shadow">
+                Ver pedidos
             </a>
-            <a href="<?= base_url('products') ?>" class="btn border px-4 py-2 rounded-xl">
+            <a href="<?= site_url('productos') ?>" class="btn border px-4 py-2 rounded-xl">
                 Ver Inventario
             </a>
         </div>
     </div>
+    <p class="mb-6 text-sm text-slate-500">La creación de pedidos se habilitará con el flujo de reservas y pagos. Los importes mostrados no representan cobros verificados ni facturas.</p>
 
     <!-- KPIs -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <?php
         $cards = [
-            ['title' => 'Ventas hoy', 'value' => number_format($kpi['ventasHoy'] ?? 0, 2), 'hint' => 'Total facturado', 'icon' => '💰'],
-            ['title' => 'Pedidos pendientes', 'value' => $kpi['pedidosPendientes'] ?? 0, 'hint' => 'Por despachar', 'icon' => '📦'],
-            ['title' => 'Stock bajo', 'value' => $kpi['stockBajo'] ?? 0, 'hint' => '<10 unidades', 'icon' => '⚠️'],
-            ['title' => 'Clientes activos', 'value' => $kpi['clientesActivos'] ?? 0, 'hint' => 'Con pedidos recientes', 'icon' => '👥'],
+            ['title' => 'Importe de pedidos de hoy', 'value' => isset($kpi['ventasHoy']) ? number_format($kpi['ventasHoy'], 2) : '—', 'hint' => 'Según fecha de registro', 'icon' => '💰'],
+            ['title' => 'Pedidos pendientes', 'value' => $kpi['pedidosPendientes'] ?? '—', 'hint' => 'Indicador pendiente de implementar', 'icon' => '📦'],
+            ['title' => 'Stock bajo', 'value' => $kpi['stockBajo'] ?? '—', 'hint' => isset($kpi['stockBajo']) ? '<10 unidades' : 'Dato no disponible', 'icon' => '⚠️'],
+            ['title' => 'Clientes activos', 'value' => $kpi['clientesActivos'] ?? '—', 'hint' => isset($kpi['clientesActivos']) ? 'Con pedidos recientes' : 'Dato no disponible', 'icon' => '👥'],
         ];
         ?>
         <?php foreach ($cards as $c): ?>
@@ -78,7 +79,7 @@
                                 <td class="px-4 py-2 text-right">$<?= number_format($row['total'] ?? 0, 2) ?></td>
                                 <td class="px-4 py-2"><?= esc(date('Y-m-d H:i', strtotime($row['created_at'] ?? 'now'))) ?></td>
                                 <td class="px-4 py-2 text-right">
-                                    <a class="text-primary hover:underline" href="<?= base_url('orders/show/'.$row['id']) ?>">ver</a>
+                                    <a class="text-primary hover:underline" href="<?= site_url('pedidos/'.(int) $row['id']) ?>">Ver pedido</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -93,7 +94,7 @@
         <!-- Ventas últimos 7 días (Gráfica) -->
         <div class="bg-white shadow border rounded-2xl">
             <div class="p-5 border-b flex items-center justify-between">
-                <h2 class="font-semibold">Ventas últimos 7 días</h2>
+                <h2 class="font-semibold">Importe de pedidos por fecha</h2>
             </div>
             <div class="p-5">
                 <canvas id="chart-ventas-7d" class="w-full h-64"></canvas>
@@ -104,7 +105,7 @@
         <div class="xl:col-span-1 bg-white shadow border rounded-2xl">
             <div class="p-5 border-b flex items-center justify-between">
                 <h2 class="font-semibold">Stock crítico</h2>
-                <a href="<?= base_url('products?filter=low') ?>" class="text-sm text-primary hover:underline">Ver todo</a>
+                <a href="<?= site_url('productos') ?>" class="text-sm text-primary hover:underline">Ver todos los productos</a>
             </div>
             <div class="p-5">
                 <ul class="space-y-3">
@@ -121,7 +122,7 @@
                             </li>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p class="text-sm text-slate-500">Sin productos críticos.</p>
+                        <p class="text-sm text-slate-500"><?= ($stockCritico ?? null) === null ? 'Consulta de stock crítico no disponible.' : 'Sin productos críticos.' ?></p>
                     <?php endif; ?>
                 </ul>
             </div>
@@ -144,7 +145,7 @@
                 data: {
                     labels,
                     datasets: [{
-                        label: 'Ventas ($)',
+                        label: 'Importe de pedidos ($)',
                         data: ventas,
                         fill: false,
                         tension: 0.3
