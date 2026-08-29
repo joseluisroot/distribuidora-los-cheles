@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <?= view('partials/favicon') ?>
     <meta charset="utf-8">
     <title><?= lang('Errors.pageNotFound') ?></title>
 

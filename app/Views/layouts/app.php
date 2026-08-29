@@ -1,25 +1,12 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" prefix="og: https://ogp.me/ns#">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title><?= esc($title ?? 'Distribuidora Los Cheles') ?></title>
+    <?= $this->include('partials/seo') ?>
 
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1d4ed8',
-                        secondary: '#9333ea',
-                        muted: '#64748b',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Compiled locally with npm run build; no Node runtime required on hosting. -->
+    <link rel="stylesheet" href="<?= base_url('css/app.css') ?>?v=<?= (int) filemtime(FCPATH . 'css/app.css') ?>">
 
     <!-- Utilitarios simples sin @apply -->
     <style>
@@ -74,14 +61,14 @@ $showFooter = $showFooter ?? true;
                         <?php if(($user['role'] ?? '') === 'admin'): ?>
                             <li><a class="text-muted hover:text-primary" href="<?= site_url('productos') ?>">Productos</a></li>
                             <li><a class="text-muted hover:text-primary" href="<?= site_url('pedidos') ?>">Pedidos</a></li>
-                            <li><a class="text-muted hover:text-primary" href="<?= site_url('usuarios') ?>">Usuarios</a></li>
+                            <li><a class="text-muted hover:text-primary" href="<?= site_url('dashboard') ?>">Mi panel</a></li>
                         <?php else: ?>
                             <li><a class="text-muted hover:text-primary" href="<?= site_url('catalogo') ?>">Catálogo</a></li>
                             <li><a class="text-muted hover:text-primary" href="<?= site_url('carretilla') ?>">Mi Carretilla</a></li>
                             <li><a class="text-muted hover:text-primary" href="<?= site_url('pedidos') ?>">Mis Pedidos</a></li>
                         <?php endif; ?>
                         <li><span class="badge"><?= esc($user['name'] ?? 'Usuario') ?></span></li>
-                        <li><a class="btn btn-outline" href="<?= site_url('logout') ?>">Salir</a></li>
+                        <li><form method="post" action="<?= site_url('logout') ?>"><?= csrf_field() ?><button type="submit" class="btn btn-outline" >Salir</button></form></li>
                     <?php else: ?>
                         <li><a class="btn btn-primary" href="<?= site_url('login') ?>">Ingresar</a></li>
                     <?php endif; ?>
@@ -113,6 +100,8 @@ $showFooter = $showFooter ?? true;
     function closeModal(id){ document.getElementById(id)?.classList.add('hidden'); }
 </script>
 
-<?= $this->include('partials/whatsapp_fab') ?>
+<?php if ($showWhatsApp ?? $showNavbar): ?>
+    <?= $this->include('partials/whatsapp_fab') ?>
+<?php endif; ?>
 </body>
 </html>

@@ -6,15 +6,15 @@ use CodeIgniter\Model;
 
 class PedidoModel extends Model
 {
-    protected $table = 'pedido_detalle';
+    protected $table = 'pedidos';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['pedido_id','producto_id','cantidad','precio_unit','subtotal'];
+    protected $allowedFields = ['cliente_id','estado','total','observaciones'];
     protected $useTimestamps = true;
     protected $returnType = 'array';
 
     public function totalizarPedido(int $pedidoId): float
     {
-        $rows = $this->select('subtotal')->where('pedido_id',$pedidoId)->findAll();
+        $rows = (new PedidoDetalleModel())->select('subtotal')->where('pedido_id',$pedidoId)->findAll();
         $total = 0.0;
         foreach ($rows as $r) $total += (float)$r['subtotal'];
         return round($total, 2, PHP_ROUND_HALF_UP);
@@ -23,7 +23,7 @@ class PedidoModel extends Model
     /** Ventas del día basadas en pedido_detalle.created_at */
     public function getTotalByDate(string $ymd): float
     {
-        $row = $this->select('COALESCE(SUM(subtotal),0) AS total')
+        $row = $this->select('COALESCE(SUM(total),0) AS total')
             ->where('DATE(created_at)', $ymd)
             ->get()->getRowArray();
 
@@ -35,7 +35,7 @@ class PedidoModel extends Model
     {
         $sql = "
             SELECT DATE(created_at) AS fecha,
-                   COALESCE(SUM(subtotal),0) AS total
+                   COALESCE(SUM(total),0) AS total
             FROM {$this->table}
             WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL {$days} DAY)
             GROUP BY DATE(created_at)
@@ -51,11 +51,8 @@ class PedidoModel extends Model
     public function getRecentOrders(int $limit = 10): array
     {
         $sql = "
-            SELECT pd.pedido_id AS id,
-                   COALESCE(SUM(pd.subtotal),0) AS total,
-                   MAX(pd.created_at) AS created_at
+            SELECT pd.id, pd.total, pd.created_at, pd.estado AS status
             FROM {$this->table} pd
-            GROUP BY pd.pedido_id
             ORDER BY created_at DESC
             LIMIT {$limit}
         ";
@@ -64,7 +61,6 @@ class PedidoModel extends Model
         // Campos “customer_name” y “status” placeholders por ahora.
         foreach ($rows as &$r) {
             $r['customer_name'] = '—';
-            $r['status'] = '—';
         }
         return $rows;
     }

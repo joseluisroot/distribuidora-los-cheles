@@ -28,7 +28,7 @@
                 <td class="p-3 text-right space-x-2">
                     <a class="btn btn-outline" href="<?= site_url('productos/editar/'.$p['id']) ?>">Editar</a>
                     <a class="btn btn-outline" href="<?= site_url('productos/escalas/'.$p['id']) ?>">Escalas</a>
-                    <a class="btn btn-outline text-red-600" href="<?= site_url('productos/eliminar/'.$p['id']) ?>">Eliminar</a>
+                    <form method="post" action="<?= site_url('productos/eliminar/'.$p['id']) ?>"><?= csrf_field() ?><button class="btn btn-outline text-red-600" type="submit">Eliminar</button></form>
                 </td>
             </tr>
         <?php endforeach; ?>

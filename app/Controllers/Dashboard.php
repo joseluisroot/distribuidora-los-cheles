@@ -10,6 +10,11 @@ class Dashboard extends BaseController
     public function index()
     {
         $user = session('user');
-        return view('dashboard/index', ['user'=>$user]);
+        $access = new \App\Services\AccessService();
+        return view('dashboard/index', [
+            'user' => $user,
+            'canManageAccess' => $access->can((int) $user['id'], 'access.manage'),
+            'canManageProducts' => $access->can((int) $user['id'], 'products.manage'),
+        ]);
     }
 }

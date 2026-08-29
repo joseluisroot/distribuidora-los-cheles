@@ -1,165 +1,51 @@
 <?php
-
 use CodeIgniter\Router\RouteCollection;
-
-/**
- * @var RouteCollection $routes
- */
-//$routes->get('/', 'Auth::login');
+/** @var RouteCollection $routes */
+$routes->setAutoRoute(false);
 $routes->get('/', 'CatalogoController::index');
-
+$routes->get('catalogo', 'CatalogoController::index');
+$routes->get('catalogo/json/(:segment)', 'CatalogoController::json/$1');
+$routes->get('catalogo/(:segment)', 'CatalogoController::show/$1');
+$routes->get('politicas-terminos-y-condiciones', 'PaginasController::terminos');
 $routes->get('login', 'Auth::login');
 $routes->post('login', 'Auth::doLogin');
-$routes->get('logout', 'Auth::logout');
-
+$routes->get('register', 'Auth::register');
+$routes->post('register', 'Auth::doRegister');
 $routes->get('forgot', 'Auth::forgot');
 $routes->post('forgot', 'Auth::sendReset');
 $routes->get('reset/(:segment)', 'Auth::reset/$1');
 $routes->post('reset', 'Auth::doReset');
-$routes->get('register', 'Auth::register');
-
-
-// Panel del CLIENTE
-$routes->group('', ['filter' => 'auth'], static function ($routes) {
-    // Usa el controlador correcto de cliente
-    $routes->get('dashboard', 'Cliente\Dashboard::index', ['as' => 'client.dashboard']);
-
-    // Ejemplos (futuros módulos):
-    // $routes->group('admin', ['filter'=>'auth:admin'], function($routes){
-    //   $routes->get('productos', 'Admin\Productos::index');
-    // });
-});
-
-// Panel del ADMIN
-$routes->group('admin', ['filter' => 'adminauth'], static function ($routes) {
-    $routes->get('dashboard', 'Admin\DashboardController::index', ['as' => 'admin.index']);
-});
-
-/*
-// catálogo simple para probar (listar productos activos)
-$routes->get('catalogo', 'CatalogoController::index');
-// Catálogo (visible para usuarios logueados o público, tú decides)
-$routes->get('catalogo', 'CarretillaController::catalogo');*/
-
-// catálogo
-$routes->get('catalogo', 'CatalogoController::index');
-
-// PDP por slug
-$routes->get('catalogo/(:segment)', 'CatalogoController::show/$1');
-
-// Endpoint JSON (puede aceptar slug o id). Recomiendo slug también:
-$routes->get('catalogo/json/(:segment)', 'CatalogoController::json/$1');
-
-// PDP (detalle de producto)
-$routes->get('catalogo/(:num)', 'CatalogoController::show/$1');
-// Endpoint JSON para Vista Rápida (modal)
-$routes->get('catalogo/json/(:num)', 'CatalogoController::json/$1');
-
-$routes->post('carretilla/agregar', 'CarretillaController::agregar');
-$routes->get('carretilla', 'CarretillaController::index'); // opcional
-
-
-// endpoints de prueba de pedido
-$routes->group('demo', function ($r) {
-    // crear pedido vacío para cliente 2
-    $r->get('crear-pedido', function () {
-        $svc = new \App\Services\PedidoService();
-        $pedido = $svc->crearPedido(2, 'Pedido demo');
-        return json_encode($pedido);
-    });
-
-    // agregar item: ?pedido=1&producto=1&cant=3
-    $r->get('agregar-item', function () {
-        $svc = new \App\Services\PedidoService();
-        $pedidoId = (int)($_GET['pedido'] ?? 0);
-        $prodId = (int)($_GET['producto'] ?? 0);
-        $cant = (int)($_GET['cant'] ?? 1);
-        $svc->agregarItem($pedidoId, $prodId, $cant);
-        return 'OK';
-    });
-
-    // confirmar (cambia a preparando y descuenta stock)
-    // ?pedido=1&user=1
-    $r->get('confirmar', function () {
-        $svc = new \App\Services\PedidoService();
-        $pedidoId = (int)($_GET['pedido'] ?? 0);
-        $userId = (int)($_GET['user'] ?? 1);
-        $svc->confirmar($pedidoId, $userId);
-        return 'OK';
-    });
-
-    // procesar (cambia a procesado)
-    // ?pedido=1&user=1
-    $r->get('procesar', function () {
-        $svc = new \App\Services\PedidoService();
-        $pedidoId = (int)($_GET['pedido'] ?? 0);
-        $userId = (int)($_GET['user'] ?? 1);
-        $svc->procesar($pedidoId, $userId, 'Entrega completa');
-        return 'OK';
-    });
-});
-
-
-
-// Carretilla y Checkout (requieren login)
-$routes->group('', ['filter' => 'auth'], static function ($routes) {
-    $routes->get('carretilla', 'CarretillaController::index');
-    $routes->post('carretilla/agregar', 'CarretillaController::add');
-    $routes->post('carretilla/update', 'CarretillaController::update');
-    $routes->get('carretilla/remove/(:num)', 'CarretillaController::remove/$1');
-    $routes->get('carretilla/clear', 'CarretillaController::clear');
-
-    $routes->get('carretilla/checkout', 'CarretillaController::checkout');
-    $routes->post('carretilla/place-order', 'CarretillaController::placeOrder');
-});
-
-
-$routes->group('productos', ['filter' => 'auth:admin'], function ($routes) {
-    $routes->get('/', 'ProductoController::index');
-    $routes->match(['get', 'post'], 'crear', 'ProductoController::crear');
-    $routes->match(['get', 'post'], 'editar/(:num)', 'ProductoController::editar/$1');
-    $routes->match(['get', 'post'], 'escalas/(:num)', 'ProductoController::escalas/$1');
-    $routes->get('eliminar/(:num)', 'ProductoController::eliminar/$1');
-
-    // Kardex
-    $routes->get('kardex/(:num)', 'ProductoController::kardex/$1');
-    $routes->post('kardex/(:num)/movimiento', 'ProductoController::movimiento/$1');
-
-    // Export CSV
-    $routes->get('kardex/(:num)/export', 'ProductoController::exportKardex/$1');
-
-    $routes->get('reporte', 'PedidoController::reporte');
-    $routes->get('reporte/export', 'PedidoController::exportReporte');
-});
-
-$routes->get('productos/(:num)/imagenes', 'ProductoController::imagenes/$1');
-$routes->post('productos/(:num)/imagenes/subir', 'ProductoController::subirImagen/$1');
-$routes->post('productos/(:num)/imagenes/(:num)/principal', 'ProductoController::imagenPrincipal/$1/$2');
-$routes->post('productos/(:num)/imagenes/(:num)/eliminar', 'ProductoController::eliminarImagen/$1/$2');
-
-
-$routes->group('pedidos', ['filter' => 'auth'], function ($routes) {
-    $routes->get('/', 'PedidoController::index');
-    $routes->get('(:num)', 'PedidoController::ver/$1');
-
-    $routes->post('cambiar-estado/(:num)', 'PedidoController::cambiarEstado/$1');
-});
-
-// app/Config/Routes.php
-$routes->group('productos', ['filter' => 'auth:admin'], function ($routes) {
-    // ...lo que ya tienes...
-    $routes->get('importar', 'ProductoImportController::form');
-    $routes->get('importar/plantilla', 'ProductoImportController::template');
-    $routes->post('importar/previsualizar', 'ProductoImportController::preview');
-    $routes->post('importar/procesar', 'ProductoImportController::process');
-});
-
-$routes->get('migracion', 'Migrations::index');
-$routes->get('seed/run', 'Seed::run');
-
-$routes->get('politicas-terminos-y-condiciones', 'PaginasController::terminos');
-
-
-
-
-
+$routes->post('logout', 'Auth::logout', ['filter' => 'auth']);
+$routes->get('dashboard', 'Dashboard::index', ['filter' => 'auth']);
+$routes->get('admin/dashboard', 'Admin\DashboardController::index', ['filter' => 'permission:dashboard.view,orders.view']);
+$routes->get('admin/accesos', 'AccessController::index', ['filter' => 'permission:access.manage']);
+$routes->post('admin/accesos', 'AccessController::update', ['filter' => 'permission:access.manage']);
+$routes->get('carretilla', 'CarretillaController::index', ['filter' => 'auth']);
+$routes->post('carretilla/agregar', 'CarretillaController::add', ['filter' => 'auth']);
+$routes->post('carretilla/update', 'CarretillaController::update', ['filter' => 'auth']);
+$routes->post('carretilla/remove/(:num)', 'CarretillaController::remove/$1', ['filter' => 'auth']);
+$routes->post('carretilla/clear', 'CarretillaController::clear', ['filter' => 'auth']);
+$routes->get('carretilla/checkout', 'CarretillaController::checkout', ['filter' => 'auth']);
+$routes->post('carretilla/place-order', 'CarretillaController::placeOrder', ['filter' => 'auth']);
+$routes->get('pedidos', 'PedidoController::index', ['filter' => 'auth']);
+$routes->get('pedidos/(:num)', 'PedidoController::ver/$1', ['filter' => 'auth']);
+$routes->post('pedidos/cambiar-estado/(:num)', 'PedidoController::cambiarEstado/$1', ['filter' => 'permission:orders.change']);
+$routes->get('productos', 'ProductoController::index', ['filter' => 'permission:products.manage']);
+$routes->post('productos/eliminar/(:num)', 'ProductoController::eliminar/$1', ['filter' => 'permission:products.manage']);
+$routes->get('productos/kardex/(:num)', 'ProductoController::kardex/$1', ['filter' => 'permission:inventory.view']);
+$routes->post('productos/kardex/(:num)/movimiento', 'ProductoController::movimiento/$1', ['filter' => 'permission:inventory.adjust']);
+$routes->get('productos/kardex/(:num)/export', 'ProductoController::exportKardex/$1', ['filter' => 'permission:inventory.view']);
+$routes->get('productos/reporte', 'PedidoController::reporte', ['filter' => 'permission:orders.view']);
+$routes->get('productos/reporte/export', 'PedidoController::exportReporte', ['filter' => 'permission:orders.view']);
+$routes->get('productos/(:num)/imagenes', 'ProductoController::imagenes/$1', ['filter' => 'permission:products.manage']);
+$routes->post('productos/(:num)/imagenes/subir', 'ProductoController::subirImagen/$1', ['filter' => 'permission:products.manage']);
+$routes->post('productos/(:num)/imagenes/(:num)/principal', 'ProductoController::imagenPrincipal/$1/$2', ['filter' => 'permission:products.manage']);
+$routes->post('productos/(:num)/imagenes/(:num)/eliminar', 'ProductoController::eliminarImagen/$1/$2', ['filter' => 'permission:products.manage']);
+$routes->match(['get', 'post'], 'productos/crear', 'ProductoController::crear', ['filter' => 'permission:products.manage,prices.manage,inventory.adjust']);
+$routes->match(['get', 'post'], 'productos/editar/(:num)', 'ProductoController::editar/$1', ['filter' => 'permission:products.manage,prices.manage,inventory.adjust']);
+$routes->match(['get', 'post'], 'productos/escalas/(:num)', 'ProductoController::escalas/$1', ['filter' => 'permission:prices.manage']);
+$routes->get('productos/importar', 'ProductoImportController::form', ['filter' => 'permission:inventory.import,products.manage,prices.manage']);
+$routes->get('productos/importar/plantilla', 'ProductoImportController::template', ['filter' => 'permission:inventory.import,products.manage,prices.manage']);
+$routes->post('productos/importar/previsualizar', 'ProductoImportController::preview', ['filter' => 'permission:inventory.import,products.manage,prices.manage']);
+$routes->post('productos/importar/procesar', 'ProductoImportController::process', ['filter' => 'permission:inventory.import,products.manage,prices.manage']);
+// No demo, migration or seeder HTTP endpoints. Guest checkout arrives in I5.

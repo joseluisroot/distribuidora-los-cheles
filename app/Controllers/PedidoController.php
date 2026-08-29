@@ -30,7 +30,7 @@ class PedidoController extends BaseController
         $builder = $this->pedidoModel->select('pedidos.*, users.name as cliente')
             ->join('users', 'users.id = pedidos.cliente_id');
 
-        if ($user['role'] === 'cliente') {
+        if (!(new \App\Services\AccessService())->can((int) $user['id'], 'orders.view')) {
             $builder->where('cliente_id', $user['id']);
         }
 
@@ -45,6 +45,13 @@ class PedidoController extends BaseController
     // Ver detalle de un pedido
     public function ver($id)
     {
+        $access = new \App\Services\AccessService();
+        $actor = $access->sessionUser();
+        $header = db_connect()->table('pedidos')->where('id', (int) $id)->get()->getRowArray();
+        if (!$actor || !$header || ((int) $header['cliente_id'] !== (int) $actor['id']
+            && !$access->can((int) $actor['id'], 'orders.view'))) {
+            return $this->response->setStatusCode(404)->setBody('Pedido no encontrado.');
+        }
         $pedido = $this->pedidoModel->select('pedidos.*, users.name as cliente')
             ->join('users','users.id = pedidos.cliente_id')
             ->where('pedidos.id', $id)
@@ -158,54 +165,6 @@ class PedidoController extends BaseController
 
     public function cambiarEstado($id)
     {
-        $user = session('user');
-        if (!$user || ($user['role'] ?? '') !== 'admin') {
-            return redirect()->back()->with('error','No autorizado.');
-        }
-
-        $pedido = $this->pedidoModel->find($id);
-        if (!$pedido) {
-            return redirect()->back()->with('error','Pedido no encontrado.');
-        }
-
-        $destino = $this->request->getPost('estado_destino'); // ingresado | preparando | procesado
-        $nota    = trim((string)$this->request->getPost('nota'));
-
-        $svc = new PedidoService();
-
-        try {
-            if ($destino === 'preparando') {
-                if ($pedido['estado'] === 'ingresado') {
-                    $svc->confirmar((int)$id, (int)$user['id']);
-                    return redirect()->to('/pedidos/'.$id)->with('message','Pedido cambiado a preparando.');
-                } else {
-                    return redirect()->back()->with('error','Solo puedes pasar a "preparando" desde "ingresado".');
-                }
-            }
-
-            if ($destino === 'procesado') {
-                if ($pedido['estado'] === 'ingresado') {
-                    // confirmar y luego procesar
-                    $svc->confirmar((int)$id, (int)$user['id']);
-                    $svc->procesar((int)$id, (int)$user['id'], $nota ?: 'Procesado desde estado ingresado');
-                    return redirect()->to('/pedidos/'.$id)->with('message','Pedido confirmado y procesado.');
-                }
-                if ($pedido['estado'] === 'preparando') {
-                    $svc->procesar((int)$id, (int)$user['id'], $nota ?: 'Pedido procesado');
-                    return redirect()->to('/pedidos/'.$id)->with('message','Pedido cambiado a procesado.');
-                }
-                return redirect()->back()->with('error','Estado inválido para procesar.');
-            }
-
-            if ($destino === 'ingresado') {
-                return redirect()->back()->with('error','No se permiten retrocesos a "ingresado".');
-            }
-
-            return redirect()->back()->with('error','Estado destino no válido.');
-        } catch (\Throwable $e) {
-            return redirect()->back()->with('error','Error: '.$e->getMessage());
-        }
+        return $this->response->setStatusCode(409)->setBody('Transiciones suspendidas hasta implementar pago, reserva y despacho en I6.');
     }
-
-
 }

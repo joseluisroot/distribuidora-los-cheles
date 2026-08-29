@@ -68,8 +68,22 @@ class CatalogoController extends BaseController
 
         $query = $req->getGet(); unset($query['page_catalogo']);
 
+        // Preserve pagination identity, excluding campaign/tracking parameters.
+        $canonicalParams = [];
+        $page = max(1, (int) $req->getGet('page_catalogo'));
+        if ($page > 1) $canonicalParams['page_catalogo'] = $page;
+        if ($perPage !== 12) $canonicalParams['perPage'] = $perPage;
+        $canonical = site_url('catalogo');
+        if ($canonicalParams) $canonical .= '?' . http_build_query($canonicalParams);
+
         return view('catalogo/index', [
             'title'     => 'Catálogo',
+            'seo' => [
+                'public' => true,
+                'index' => $q === '' && $sort === 'recientes',
+                'title' => 'Catálogo | Distribuidora Los Cheles',
+                'url' => $canonical,
+            ],
             'productos' => $productos,
             'pager'     => $pager,
             'q'         => $q,
@@ -108,9 +122,11 @@ class CatalogoController extends BaseController
         $imgModel  = new \App\Models\ProductImageModel();
         $imagenes  = $imgModel->byProducto((int)$producto['id']);   // lista completa ordenada
         $principal = $imagenes[0] ?? null;
+        helper('seo');
 
         return view('catalogo/show', [
             'title'    => $producto['nombre'].' - Catálogo',
+            'seo' => seo_product($producto, $principal),
             'producto' => $producto,
             'escalas'  => $escalas,
             'imagenes'  => $imagenes,

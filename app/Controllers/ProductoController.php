@@ -42,7 +42,7 @@ class ProductoController extends BaseController
     // Crear producto (form + guardar)
     public function crear()
     {
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->is('post')) {
             // Validación
             $rules = [
                 'sku' => 'required|min_length[1]|max_length[50]|is_unique[productos.sku]',
@@ -195,7 +195,7 @@ class ProductoController extends BaseController
         $producto  = $this->productoModel->find($id);
         $inventario= $this->inventarioModel->where('producto_id', $id)->first();
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->is('post')) {
             $rules = [
                 'sku'         => 'required|min_length[1]|max_length[50]|is_unique[productos.sku,id,{id}]',
                 'nombre'      => 'required|min_length[2]|max_length[150]',
@@ -243,7 +243,7 @@ class ProductoController extends BaseController
         $producto = $this->productoModel->find($id);
         $escalas = $this->escalaModel->where('producto_id', $id)->orderBy('min_cantidad')->findAll();
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->is('post')) {
             $this->escalaModel->insert([
                 'producto_id' => $id,
                 'min_cantidad' => $this->request->getPost('min_cantidad'),
@@ -420,7 +420,9 @@ class ProductoController extends BaseController
         }
 
         // Validaciones
-        if (!in_array($file->getClientMimeType(), ['image/jpeg', 'image/png', 'image/webp'])) {
+        $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        $mime = $file->getMimeType();
+        if (!isset($extensions[$mime]) || @getimagesize($file->getTempName()) === false) {
             return redirect()->back()->with('error', 'Formato no permitido. Usa JPG/PNG/WEBP.');
         }
         if ($file->getSize() > 4 * 1024 * 1024) { // 4MB
@@ -432,7 +434,7 @@ class ProductoController extends BaseController
         if (!is_dir($dir)) mkdir($dir, 0775, true);
 
         // Nombre único
-        $ext = $file->getExtension(); // respeta extension original
+        $ext = $extensions[$mime]; // Never trust client filenames/extensions.
         $name = bin2hex(random_bytes(8)) . '_' . time() . '.' . $ext;
         $path = $dir . $name;
 

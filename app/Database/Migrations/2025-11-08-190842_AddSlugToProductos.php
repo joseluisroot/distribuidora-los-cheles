@@ -18,8 +18,7 @@ class AddSlugToProductos extends Migration
             ],
         ]);
 
-        // Índice único (lo aplicaremos después de poblar los slugs)
-        $this->forge->addKey('slug', true); // <- no funciona aquí, se hace con query
+        // El índice único se crea en AddSlugUniqueIndex.
     }
 
     public function down()

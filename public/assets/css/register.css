@@ -1,0 +1,49 @@
+/* Scoped, local styles: registration stays usable without the Tailwind CDN. */
+.registration {
+    box-sizing: border-box; width: 100%; max-width: 500px; margin: 28px auto 44px;
+    padding: 0 16px; color: #1e293b; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.registration *, .registration *::before, .registration *::after { box-sizing: border-box; }
+.registration a { color: #1d4ed8; text-decoration: none; }
+.registration a:hover { text-decoration: underline; }
+.registration-back { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; margin-bottom: 12px; font-size: 14px; }
+.registration-card { padding: 32px; background: #fff; border: 1px solid #e2e8f0; border-radius: 22px; box-shadow: 0 12px 40px rgba(30, 58, 95, .08); }
+.registration-header { text-align: center; margin-bottom: 26px; }
+.registration-logo { display: block; width: 156px; max-width: 100%; height: auto; margin: 0 auto 22px; }
+.registration-header .registration-eyebrow { color: #64748b; font-size: 10px; font-weight: 700; letter-spacing: .14em; margin: 0 0 8px; }
+.registration-header h1 { font-size: 28px; line-height: 1.2; font-weight: 750; letter-spacing: -.035em; margin: 0 0 10px; }
+.registration-header p { color: #64748b; font-size: 14px; margin: 0; }
+.registration-form { display: grid; gap: 18px; }
+.registration-field label { display: block; margin-bottom: 7px; font-size: 14px; font-weight: 600; }
+.registration-field input {
+    display: block; width: 100%; min-height: 48px; padding: 11px 13px;
+    border: 1px solid #cbd5e1; border-radius: 10px; background: #f8fafc;
+    font: inherit; font-size: 16px; color: #0f172a; transition: border-color .15s, box-shadow .15s;
+}
+.registration-field input::placeholder { color: #64748b; opacity: 1; }
+.registration-field input:focus { outline: none; border-color: #1d4ed8; background: #fff; box-shadow: 0 0 0 3px rgba(29, 78, 216, .15); }
+.registration-password { position: relative; }
+.registration-password input { padding-right: 86px; }
+.registration-toggle { position: absolute; right: 4px; top: 2px; min-height: 44px; padding: 0 10px; border: 0; border-radius: 7px; background: transparent; color: #1d4ed8; font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+.registration-toggle[hidden] { display: none; }
+.registration-help { margin: 7px 0 0; color: #64748b; font-size: 12px; line-height: 1.5; }
+.registration-submit { display: flex; align-items: center; justify-content: center; gap: 14px; min-height: 50px; width: 100%; margin-top: 4px; border: 0; border-radius: 10px; background: #1d4ed8; color: white; font: inherit; font-weight: 650; cursor: pointer; }
+.registration-submit:hover { background: #1e40af; }
+.registration-submit:disabled { opacity: .65; cursor: wait; }
+.registration a:focus-visible, .registration button:focus-visible { outline: 3px solid #60a5fa; outline-offset: 3px; }
+.registration-status { margin: 0; color: #475569; text-align: center; font-size: 13px; }
+.registration-status:empty { display: none; }
+.registration-footer { border-top: 1px solid #e2e8f0; margin-top: 25px; padding-top: 20px; text-align: center; }
+.registration-footer p { margin: 0 0 12px; font-size: 14px; }
+.registration-footer p a { font-weight: 650; }
+.registration-footer .registration-terms { color: #64748b; font-size: 12px; text-decoration: underline; }
+.registration-note { color: #64748b; margin: 20px 0 0; text-align: center; font-size: 12px; }
+.registration-error { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; border-radius: 10px; padding: 12px; margin-bottom: 20px; font-size: 14px; }
+@media (max-width: 480px) {
+    .registration { margin-top: 8px; padding: 0 8px; }
+    .registration-card { padding: 25px 20px; border-radius: 16px; }
+    .registration-header h1 { font-size: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .registration-field input { transition: none; }
+}

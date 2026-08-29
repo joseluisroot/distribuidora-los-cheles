@@ -3,22 +3,21 @@
 <div class="space-y-4">
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold">Hola, <?= esc($user['name']) ?></h1>
-        <a href="<?= site_url('logout') ?>" class="text-red-600 hover:underline">Cerrar sesión</a>
+        <form method="post" action="<?= site_url('logout') ?>"><?= csrf_field() ?><button type="submit"  class="text-red-600 hover:underline">Cerrar sesión</button></form>
     </div>
 
     <div class="grid md:grid-cols-2 gap-4">
         <div class="card">
             <h2 class="text-lg font-semibold mb-2">Menú</h2>
             <ul class="list-disc pl-5 space-y-1">
-                <?php if ($user['role'] === 'admin'): ?>
-                    <li><a class="text-blue-600 hover:underline" href="#">Productos</a></li>
-                    <li><a class="text-blue-600 hover:underline" href="#">Inventarios</a></li>
-                    <li><a class="text-blue-600 hover:underline" href="#">Pedidos</a></li>
-                    <li><a class="text-blue-600 hover:underline" href="#">Mantenimientos</a></li>
-                <?php else: ?>
-                    <li><a class="text-blue-600 hover:underline" href="#">Catálogo</a></li>
-                    <li><a class="text-blue-600 hover:underline" href="#">Mi Carretilla</a></li>
-                    <li><a class="text-blue-600 hover:underline" href="#">Mis Pedidos</a></li>
+                <li><a href="<?= site_url('catalogo') ?>">Catálogo</a></li>
+                <li><a href="<?= site_url('carretilla') ?>">Mi Carretilla</a></li>
+                <li><a href="<?= site_url('pedidos') ?>">Mis Pedidos</a></li>
+                <?php if ($canManageProducts): ?>
+                    <li><a href="<?= site_url('productos') ?>">Productos</a></li>
+                <?php endif; ?>
+                <?php if ($canManageAccess): ?>
+                    <li><a href="<?= site_url('admin/accesos') ?>">Permisos y auditoría</a></li>
                 <?php endif; ?>
             </ul>
         </div>
