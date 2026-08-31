@@ -1,85 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es">
 <head>
     <?= view('partials/favicon') ?>
     <meta charset="utf-8">
-    <title><?= lang('Errors.pageNotFound') ?></title>
-
-    <style>
-        div.logo {
-            height: 200px;
-            width: 155px;
-            display: inline-block;
-            opacity: 0.08;
-            position: absolute;
-            top: 2rem;
-            left: 50%;
-            margin-left: -73px;
-        }
-        body {
-            height: 100%;
-            background: #fafafa;
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-            color: #777;
-            font-weight: 300;
-        }
-        h1 {
-            font-weight: lighter;
-            letter-spacing: normal;
-            font-size: 3rem;
-            margin-top: 0;
-            margin-bottom: 0;
-            color: #222;
-        }
-        .wrap {
-            max-width: 1024px;
-            margin: 5rem auto;
-            padding: 2rem;
-            background: #fff;
-            text-align: center;
-            border: 1px solid #efefef;
-            border-radius: 0.5rem;
-            position: relative;
-        }
-        pre {
-            white-space: normal;
-            margin-top: 1.5rem;
-        }
-        code {
-            background: #fafafa;
-            border: 1px solid #efefef;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            display: block;
-        }
-        p {
-            margin-top: 1.5rem;
-        }
-        .footer {
-            margin-top: 2rem;
-            border-top: 1px solid #efefef;
-            padding: 1em 2em 0 2em;
-            font-size: 85%;
-            color: #999;
-        }
-        a:active,
-        a:link,
-        a:visited {
-            color: #dd4814;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Página no encontrada | Distribuidora Los Cheles</title>
+    <link rel="stylesheet" href="<?= base_url('assets/css/error-pages.css') ?>">
 </head>
 <body>
-    <div class="wrap">
-        <h1>404</h1>
-
-        <p>
-            <?php if (ENVIRONMENT !== 'production') : ?>
-                <?= nl2br(esc($message)) ?>
-            <?php else : ?>
-                <?= lang('Errors.sorryCannotFind') ?>
-            <?php endif; ?>
-        </p>
-    </div>
+<main class="error-shell" aria-labelledby="error-title">
+    <section class="error-card">
+        <header class="error-brand">
+            <img src="<?= base_url('assets/Logo_LosCheles.PNG') ?>" alt="Distribuidora Los Cheles" width="138">
+            <span aria-hidden="true">404</span>
+        </header>
+        <div class="error-illustration" aria-hidden="true">
+            <svg viewBox="0 0 64 64" width="58" height="58" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="28" cy="28" r="17"/><path d="m41 41 12 12M20 28h16M28 20v16"/>
+            </svg>
+        </div>
+        <p class="error-eyebrow">PÁGINA NO ENCONTRADA · 404</p>
+        <h1 id="error-title">No encontramos lo que buscabas</h1>
+        <p class="error-copy">Es posible que el enlace haya cambiado, esté incompleto o que la página ya no esté disponible.</p>
+        <nav class="error-actions" aria-label="Opciones para continuar">
+            <a class="error-primary" href="<?= site_url('catalogo') ?>">Ir al catálogo</a>
+            <a class="error-secondary" href="<?= site_url('dashboard') ?>">Volver a mi panel</a>
+        </nav>
+        <?php if (ENVIRONMENT !== 'production' && ! empty($message)): ?>
+            <details class="error-diagnostic">
+                <summary>Detalle para desarrollo</summary>
+                <code><?= nl2br(esc($message)) ?></code>
+            </details>
+        <?php endif ?>
+        <p class="error-help">Si llegaste aquí desde un enlace de la plataforma, puedes reportarlo al administrador.</p>
+    </section>
+</main>
 </body>
 </html>

@@ -6,6 +6,26 @@ final class SecurityRoutesTest extends CIUnitTestCase
 {
     use FeatureTestTrait;
 
+    public function testWarehouseStructureRequiresAuthentication(): void
+    {
+        $this->get('inventario/ubicaciones')->assertRedirectTo(site_url('login'));
+    }
+
+    /** @dataProvider warehouseMutationPaths */
+    public function testWarehouseMutationsRequireAuthentication(string $path): void
+    {
+        $security = service('security');
+        $name = $security->getTokenName();
+        $hash = $security->getHash();
+        $this->withSession([$name => $hash])->post($path, [$name => $hash])->assertRedirectTo(site_url('login'));
+    }
+
+    public static function warehouseMutationPaths(): array
+    {
+        return array_map(static fn ($path) => [$path], ['inventario/sedes', 'inventario/almacenes',
+            'inventario/ubicaciones', 'inventario/estructura/estado']);
+    }
+
     public function testOrderScreensRenderOnlyOneMainNavigation(): void
     {
         $data = ['pedidos' => [], 'detalles' => [], 'historial' => [],
@@ -55,6 +75,23 @@ final class SecurityRoutesTest extends CIUnitTestCase
         $this->assertStringContainsString('name="' . csrf_token() . '"', $html);
         $this->assertStringContainsString(base_url('assets/css/register.css'), $html);
         $this->assertStringContainsString(base_url('assets/js/register.js'), $html);
+    }
+
+    public function testDashboardHasOneLogoutAndModernModuleNavigation(): void
+    {
+        session()->set('user', ['id' => 1, 'name' => 'Jose Luis Reyes Ortiz', 'role' => 'admin']);
+        $html = view('dashboard/index', ['user' => ['name' => 'Jose Luis Reyes Ortiz'],
+            'canManageProducts' => true, 'canManageAccess' => true, 'canViewInventory' => true]);
+        session()->remove('user');
+        $dom = new \DOMDocument();
+        @$dom->loadHTML('<?xml encoding="UTF-8">' . $html);
+        $xpath = new \DOMXPath($dom);
+
+        $this->assertSame(0, substr_count(file_get_contents(APPPATH . 'Views/dashboard/index.php'), "site_url('logout')"));
+        $this->assertSame(1, substr_count(file_get_contents(APPPATH . 'Views/partials/navbar.php'), "site_url('logout')"));
+        $this->assertSame(6, (int) $xpath->evaluate('count(//a[contains(concat(" ",normalize-space(@class)," ")," workspace-module ")])'));
+        $this->assertStringContainsString(base_url('assets/css/dashboard.css'), $html);
+        $this->assertStringContainsString('Solo aparecen los módulos autorizados', $html);
     }
 
     public function testImageManagementRequiresAuthentication(): void

@@ -15,6 +15,7 @@ class Dashboard extends BaseController
             'user' => $user,
             'canManageAccess' => $access->can((int) $user['id'], 'access.manage'),
             'canManageProducts' => $access->can((int) $user['id'], 'products.manage'),
+            'canViewInventory' => $access->can((int) $user['id'], 'inventory.view'),
         ]);
     }
 }
