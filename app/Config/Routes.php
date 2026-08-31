@@ -49,6 +49,9 @@ $routes->post('productos/(:num)/imagenes/(:num)/eliminar', 'ProductoController::
 $routes->match(['get', 'post'], 'productos/crear', 'ProductoController::crear', ['filter' => 'permission:products.manage,prices.manage,inventory.adjust']);
 $routes->match(['get', 'post'], 'productos/editar/(:num)', 'ProductoController::editar/$1', ['filter' => 'permission:products.manage,prices.manage,inventory.adjust']);
 $routes->match(['get', 'post'], 'productos/escalas/(:num)', 'ProductoController::escalas/$1', ['filter' => 'permission:prices.manage']);
+$routes->get('productos/(:num)/presentaciones', 'ProductPresentationController::index/$1', ['filter' => 'permission:prices.manage']);
+$routes->post('productos/(:num)/presentaciones', 'ProductPresentationController::create/$1', ['filter' => 'permission:prices.manage']);
+$routes->post('productos/(:num)/presentaciones/(:num)', 'ProductPresentationController::update/$1/$2', ['filter' => 'permission:prices.manage']);
 $routes->get('productos/importar', 'ProductoImportController::form', ['filter' => 'permission:inventory.import,products.manage,prices.manage']);
 $routes->get('productos/importar/plantilla', 'ProductoImportController::template', ['filter' => 'permission:inventory.import,products.manage,prices.manage']);
 $routes->post('productos/importar/previsualizar', 'ProductoImportController::preview', ['filter' => 'permission:inventory.import,products.manage,prices.manage']);
