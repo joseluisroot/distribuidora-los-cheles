@@ -1,38 +1,13 @@
 <?= $this->extend('layouts/app') ?>
 <?= $this->section('content') ?>
-
-<h1 class="text-2xl font-bold mb-4">Productos</h1>
-
-<a href="<?= site_url('productos/crear') ?>" class="btn btn-primary mb-4">+ Nuevo</a>
-
-<div class="card overflow-x-auto">
-    <table class="min-w-full text-sm">
-        <thead class="bg-slate-50 text-slate-600">
-        <tr>
-            <th class="p-3 text-left">SKU</th>
-            <th class="p-3 text-left">Nombre</th>
-            <th class="p-3 text-right">Precio</th>
-            <th class="p-3 text-right">Stock</th>
-            <th class="p-3 text-center">Activo</th>
-            <th class="p-3 text-right">Acciones</th>
-        </tr>
-        </thead>
-        <tbody class="divide-y">
-        <?php foreach($productos as $p): ?>
-            <tr class="hover:bg-slate-50">
-                <td class="p-3"><?= esc($p['sku']) ?></td>
-                <td class="p-3"><?= esc($p['nombre']) ?></td>
-                <td class="p-3 text-right">$<?= number_format($p['precio_base'],2) ?></td>
-                <td class="p-3 text-right"><?= $p['stock'] ?? 0 ?></td>
-                <td class="p-3 text-center"><?= $p['is_activo'] ? '✅' : '❌' ?></td>
-                <td class="p-3 text-right space-x-2">
-                    <a class="btn btn-outline" href="<?= site_url('productos/editar/'.$p['id']) ?>">Editar</a>
-                    <a class="btn btn-outline" href="<?= site_url('productos/escalas/'.$p['id']) ?>">Escalas</a>
-                    <form method="post" action="<?= site_url('productos/eliminar/'.$p['id']) ?>"><?= csrf_field() ?><button class="btn btn-outline text-red-600" type="submit">Eliminar</button></form>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-        </tbody>
-    </table>
-</div>
+<link rel="stylesheet" href="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.css') ?>"><link rel="stylesheet" href="<?= base_url('assets/css/commerce-admin.css') ?>">
+<?php $activeCount=count(array_filter($productos,fn($p)=>(bool)$p['is_activo']));$stockTotal=array_sum(array_map(fn($p)=>(int)($p['stock']??0),$productos)); ?>
+<main class="commerce-page">
+<header class="commerce-hero"><div><p class="commerce-eyebrow">CATÁLOGO / ADMINISTRACIÓN</p><h1>Productos</h1><p>Organiza el catálogo, sus imágenes y formatos de venta desde un solo lugar.</p></div><a class="commerce-primary" href="<?= site_url('productos/crear') ?>"><span aria-hidden="true">＋</span> Nuevo producto</a></header>
+<section class="commerce-stats" aria-label="Resumen del catálogo"><article><span>Productos</span><strong><?= count($productos) ?></strong><small>registros totales</small></article><article><span>Activos</span><strong><?= $activeCount ?></strong><small>visibles para operación</small></article><article><span>Stock heredado</span><strong><?= number_format($stockTotal) ?></strong><small>referencia provisional</small></article></section>
+<section class="commerce-card"><div class="commerce-section-heading"><div><p class="commerce-eyebrow">GESTIÓN COMERCIAL</p><h2>Catálogo registrado</h2></div><p>Las presentaciones permiten separar unidad, fardo o caja y sus precios.</p></div>
+<?php if(!$productos): ?><div class="commerce-empty"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9"/></svg></span><h3>Tu catálogo está listo para comenzar</h3><p>Crea el primer producto y luego configura sus presentaciones comerciales.</p><a class="commerce-primary" href="<?= site_url('productos/crear') ?>">Crear primer producto</a></div>
+<?php else: ?><div class="commerce-table-wrap" tabindex="0" role="region" aria-label="Productos, tabla desplazable"><table><thead><tr><th>Producto</th><th>Precio base</th><th>Stock</th><th>Estado</th><th>Acciones</th></tr></thead><tbody><?php foreach($productos as $p): ?><tr><td><span class="commerce-product-code"><?= esc($p['sku']) ?></span><strong><?= esc($p['nombre']) ?></strong></td><td><strong>$<?= number_format((float)$p['precio_base'],2) ?></strong><small>valor heredado</small></td><td><?= number_format((int)($p['stock']??0)) ?></td><td><span class="commerce-status <?= $p['is_activo']?'is-active':'is-inactive' ?>"><?= $p['is_activo']?'Activo':'Inactivo' ?></span></td><td><div class="commerce-actions"><a href="<?= site_url('productos/'.$p['id'].'/presentaciones') ?>">Presentaciones</a><a href="<?= site_url('productos/editar/'.$p['id']) ?>">Editar</a><form method="post" action="<?= site_url('productos/eliminar/'.$p['id']) ?>" data-delete-product="<?= esc($p['nombre'],'attr') ?>"><?= csrf_field() ?><button type="submit">Eliminar</button></form></div></td></tr><?php endforeach ?></tbody></table></div><?php endif ?></section>
+<aside class="commerce-note"><span aria-hidden="true">i</span><div><strong>Evolución controlada del inventario</strong><p>El stock mostrado pertenece al esquema anterior. Las existencias por ubicación, lotes y presentaciones se incorporarán sin convertir datos automáticamente.</p></div></aside>
+</main><script src="<?= base_url('assets/vendor/sweetalert2/sweetalert2.min.js') ?>"></script><script>window.commerceFlash=<?= json_encode(['success'=>session('message'),'error'=>session('error')],JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT) ?>;</script><script src="<?= base_url('assets/js/commerce-admin.js') ?>"></script>
 <?= $this->endSection() ?>

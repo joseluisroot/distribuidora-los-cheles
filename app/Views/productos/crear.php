@@ -1,146 +1,21 @@
 <?= $this->extend('layouts/app') ?>
 <?= $this->section('content') ?>
-
-<h1 class="text-2xl font-bold mb-4">Nuevo Producto</h1>
-
-<?php
-$old = fn($k,$d='') => old($k) ?? $d;
-$errors = session('errors') ?? [];
-?>
-
-<?php if (!empty($errors)): ?>
-    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-red-700">
-        <div class="font-semibold mb-1">Por favor corrige los siguientes campos:</div>
-        <ul class="list-disc list-inside text-sm">
-            <?php foreach ($errors as $e): ?>
-                <li><?= esc($e) ?></li>
-            <?php endforeach; ?>
-        </ul>
-    </div>
-<?php endif; ?>
-
-<form method="post" action="<?= site_url('productos/crear') ?>" class="card p-4 space-y-4" enctype="multipart/form-data" novalidate>
-    <?= csrf_field() ?>
-
-    <div class="grid md:grid-cols-2 gap-4">
-        <div>
-            <label class="block mb-1 font-medium" for="sku">SKU</label>
-            <input id="sku" name="sku" class="input w-full" required value="<?= esc($old('sku')) ?>" maxlength="50" placeholder="Ej.: P-001">
-            <p class="text-xs text-slate-500 mt-1">Máx. 50 caracteres. Debe ser único.</p>
-        </div>
-
-        <div>
-            <label class="block mb-1 font-medium" for="nombre">Nombre</label>
-            <input id="nombre" name="nombre" class="input w-full" required value="<?= esc($old('nombre')) ?>" maxlength="150" placeholder="Ej.: Juego de vasos 12oz">
-            <div class="text-xs text-slate-500 mt-1">
-                Slug (prevista): <span id="slug-preview" class="font-mono text-slate-700">—</span>
-            </div>
-        </div>
-
-        <div class="md:col-span-2">
-            <label class="block mb-1 font-medium" for="descripcion">Descripción</label>
-            <textarea id="descripcion" name="descripcion" class="input w-full" rows="3" placeholder="Detalles, material, medidas..."><?= esc($old('descripcion')) ?></textarea>
-        </div>
-
-        <div>
-            <label class="block mb-1 font-medium" for="precio_base">Precio Base</label>
-            <input id="precio_base" type="number" step="0.01" min="0" name="precio_base" class="input w-full" required
-                   value="<?= esc($old('precio_base','0.00')) ?>" inputmode="decimal" placeholder="0.00">
-        </div>
-
-        <div>
-            <label class="block mb-1 font-medium" for="stock">Stock Inicial</label>
-            <input id="stock" type="number" min="0" step="1" name="stock" class="input w-full" value="<?= esc($old('stock','0')) ?>" placeholder="0">
-        </div>
-
-        <div class="md:col-span-2">
-            <label class="block mb-1 font-medium" for="imagen_url">Imagen (URL) <span class="text-slate-400">(opcional)</span></label>
-            <input id="imagen_url" name="imagen_url" class="input w-full" value="<?= esc($old('imagen_url')) ?>" placeholder="https://.../producto.jpg">
-            <div class="mt-2 flex items-start gap-4">
-                <img id="preview-img" src="<?= $old('imagen_url') ? esc($old('imagen_url')) : base_url('assets/placeholder-product.png') ?>" alt="Preview" class="w-full max-w-xs h-32 object-cover rounded-md border">
-                <div class="text-xs text-slate-500">
-                    También puedes subir imágenes desde tu equipo aquí abajo. La primera quedará como principal.
-                </div>
-            </div>
-        </div>
-
-        <!-- Subida de imágenes locales -->
-        <div class="md:col-span-2">
-            <label class="block mb-1 font-medium" for="imagenes">Imágenes (JPG/PNG/WebP) — puedes seleccionar varias</label>
-            <input id="imagenes" name="imagenes[]" type="file" class="input w-full" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple>
-            <div id="imagenes-preview" class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2"></div>
-            <p class="text-xs text-slate-500 mt-1">Máx. 5 archivos, 4MB c/u. Se generará miniatura 160x160.</p>
-        </div>
-
-        <div class="flex items-center gap-2 md:col-span-1 mt-2">
-            <label class="inline-flex items-center gap-2">
-                <input type="checkbox" name="is_activo" value="1" <?= $old('is_activo','1') ? 'checked' : '' ?>>
-                <span>Activo</span>
-            </label>
-        </div>
-    </div>
-
-    <div class="flex gap-2 pt-2">
-        <button class="btn btn-primary">Guardar</button>
-        <a href="<?= site_url('productos') ?>" class="btn btn-outline">Cancelar</a>
-    </div>
-</form>
-
-<style>
-    .thumb {
-        @apply w-full h-24 object-cover rounded-md border;
-    }
-</style>
-
-<script>
-    (function(){
-        const nombre = document.getElementById('nombre');
-        const slugPv = document.getElementById('slug-preview');
-        const toSlug = (t) => {
-            t = (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-            t = t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-            return t || 'producto';
-        };
-        const upd = () => slugPv.textContent = toSlug(nombre.value);
-        upd(); nombre.addEventListener('input', upd);
-
-        const url = document.getElementById('imagen_url');
-        const img = document.getElementById('preview-img');
-        url.addEventListener('input', () => {
-            const v = (url.value||'').trim();
-            img.src = v ? v : '<?= base_url('assets/placeholder-product.png') ?>';
-        });
-
-        // Previews locales
-        const inputFiles = document.getElementById('imagenes');
-        const grid = document.getElementById('imagenes-preview');
-        inputFiles.addEventListener('change', () => {
-            grid.innerHTML = '';
-            const files = Array.from(inputFiles.files || []).slice(0,5);
-            files.forEach(f => {
-                if (!f.type.match(/^image\/(jpeg|png|webp)$/)) return;
-                const r = new FileReader();
-                r.onload = e => {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.alt = f.name;
-                    img.className = 'thumb';
-                    grid.appendChild(img);
-                };
-                r.readAsDataURL(f);
-            });
-        });
-
-        // Clamps simples
-        const precio = document.getElementById('precio_base');
-        const stock  = document.getElementById('stock');
-        precio.addEventListener('input', () => {
-            let v = parseFloat(precio.value || '0'); if (isNaN(v) || v < 0) v = 0; precio.value = v.toFixed(2);
-        }, {passive:true});
-        stock.addEventListener('input', () => {
-            let v = parseInt(stock.value || '0', 10); if (isNaN(v) || v < 0) v = 0; stock.value = String(v);
-        }, {passive:true});
-    })();
-</script>
-
+<link rel="stylesheet" href="<?= base_url('assets/css/commerce-admin.css') ?>">
+<?php $value=fn($key,$default='')=>old($key)??$default;$errors=session('errors')??[]; ?>
+<main class="commerce-page">
+<header class="commerce-page-heading"><div><p class="commerce-eyebrow">CATÁLOGO / NUEVO REGISTRO</p><h1>Crear producto</h1><p>Registra la identidad comercial. Después podrás definir unidad, fardo, caja y sus precios.</p></div><a href="<?= site_url('productos') ?>">Volver al catálogo →</a></header>
+<?php if($errors): ?><section class="commerce-errors" role="alert"><strong>Revisa la información indicada</strong><ul><?php foreach($errors as $error): ?><li><?= esc($error) ?></li><?php endforeach ?></ul></section><?php endif ?>
+<form method="post" action="<?= site_url('productos/crear') ?>" enctype="multipart/form-data" class="commerce-form-layout" novalidate><?= csrf_field() ?>
+<div class="commerce-form-main">
+<section class="commerce-card"><div class="commerce-section-heading"><div><p class="commerce-eyebrow">01 / IDENTIDAD</p><h2>Información principal</h2></div><p>Datos que permiten encontrar y reconocer el producto.</p></div><div class="commerce-fields">
+<label>SKU <input name="sku" maxlength="50" value="<?= esc($value('sku')) ?>" placeholder="Ej.: COC-001" required><small>Código único, estable y fácil de buscar.</small></label>
+<label>Nombre del producto <input id="nombre" name="nombre" maxlength="150" value="<?= esc($value('nombre')) ?>" placeholder="Ej.: Juego de cubiertos" required><small>Enlace previsto: <span id="slug-preview">producto</span></small></label>
+<label class="is-wide">Descripción <textarea name="descripcion" rows="4" placeholder="Material, medidas, color y detalles útiles para venderlo."><?= esc($value('descripcion')) ?></textarea></label></div></section>
+<section class="commerce-card"><div class="commerce-section-heading"><div><p class="commerce-eyebrow">02 / IMÁGENES</p><h2>Presentación visual</h2></div><p>La primera imagen local quedará como principal.</p></div><div class="commerce-fields">
+<label class="is-wide">URL de imagen <input id="imagen_url" name="imagen_url" value="<?= esc($value('imagen_url')) ?>" placeholder="https://.../producto.webp"><small>Opcional si cargarás archivos desde el equipo.</small></label>
+<div class="commerce-image-preview"><img id="preview-img" src="<?= $value('imagen_url')?esc($value('imagen_url')):base_url('assets/placeholder-product.png') ?>" alt="Vista previa del producto"><div><strong>Vista previa</strong><p>Usa fotografías claras, con fondo limpio y encuadre consistente.</p></div></div>
+<label class="is-wide commerce-file">Archivos JPG, PNG o WebP <input id="imagenes" name="imagenes[]" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple><small>Hasta 5 imágenes de 4 MB cada una.</small></label><div id="imagenes-preview" class="commerce-thumbnails"></div></div></section></div>
+<aside class="commerce-form-side"><section class="commerce-card commerce-side-card"><p class="commerce-eyebrow">03 / CONFIGURACIÓN INICIAL</p><h2>Datos provisionales</h2><p>Estos valores mantienen compatibilidad con el catálogo anterior.</p><label>Precio base ($)<input id="precio_base" type="number" step="0.01" min="0" name="precio_base" value="<?= esc($value('precio_base','0.00')) ?>" required><small>Luego se reemplazará operativamente por precios de presentación.</small></label><label>Stock inicial<input id="stock" type="number" min="0" step="1" name="stock" value="<?= esc($value('stock','0')) ?>"><small>Será migrado al inventario trazable en un corte posterior.</small></label><label class="commerce-switch"><input type="checkbox" name="is_activo" value="1" <?= $value('is_activo','1')?'checked':'' ?>><span></span><div><strong>Producto activo</strong><small>Disponible para los procesos autorizados.</small></div></label></section>
+<div class="commerce-submit"><button class="commerce-primary" type="submit">Guardar producto</button><a href="<?= site_url('productos') ?>">Cancelar</a><small>Al guardar podrás configurar sus presentaciones.</small></div></aside></form></main>
+<script src="<?= base_url('assets/js/product-form.js') ?>"></script>
 <?= $this->endSection() ?>
