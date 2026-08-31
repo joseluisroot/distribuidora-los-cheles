@@ -8,7 +8,7 @@
   },
   "scripts": {
     "assets:ui": "node scripts/copy-ui-assets.cjs",
-    "test:ui": "node --test tests/access-ui.test.cjs",
+    "test:ui": "node --test tests/*-ui.test.cjs",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "tailwindcss -i ./public/css/input.css -o ./public/css/app.css --watch",
     "build": "tailwindcss -i ./public/css/input.css -o ./public/css/app.css --minify"
